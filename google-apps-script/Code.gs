@@ -1,7 +1,6 @@
 /**
  * SALUS INITIATIVE — Master Production Apps Script Backend (Code.gs)
- * Version: 4.0 (Enterprise Architectural Standard: Controller-Service-Repository)
- * Features: Sheets REST API, Base64 Drive Storage, Dark Luxury Editorial Gmail Dispatcher
+ * Version: 5.0 (Full Production Edition: REST API, Base64 Drive Storage, Sheet Repositories)
  */
 
 // ==========================================
@@ -20,11 +19,15 @@ var CONFIG = {
 function doGet(e) {
   try {
     var action = (e && e.parameter && e.parameter.action) || '';
+    var passkey = (e && e.parameter && e.parameter.passkey) || '';
     var response;
 
     switch (action) {
       case 'getStories':
         response = StoryService.getPublishedStories();
+        break;
+      case 'getApplicants':
+        response = AdminService.getApplicants(passkey);
         break;
       case 'getResources':
         response = ResourceService.getResources();
@@ -36,14 +39,13 @@ function doGet(e) {
         response = FaqService.getFaqs();
         break;
       case 'getAdminData':
-        var passkey = (e && e.parameter && e.parameter.passkey) || '';
         response = AdminService.getAdminData(passkey);
         break;
       default:
         response = {
           success: true,
           status: 'HEALTHY',
-          service: 'Salus Initiative Production Apps Script Engine v4.0',
+          service: 'Salus Initiative Production Apps Script Engine v5.0',
           timestamp: new Date().toISOString()
         };
     }
@@ -56,7 +58,14 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    var postData = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    var postData = {};
+    if (e && e.postData && e.postData.contents) {
+      try {
+        postData = JSON.parse(e.postData.contents);
+      } catch (err) {
+        postData = {};
+      }
+    }
     var action = postData.action || '';
     var response;
 
@@ -86,8 +95,14 @@ function doPost(e) {
       case 'updateApplicantStatus':
         response = AdminService.updateApplicantStatus(postData.applicantId, postData.status, postData.passkey);
         break;
+      case 'deleteApplicant':
+        response = AdminService.deleteApplicant(postData.applicantId, postData.passkey);
+        break;
+      case 'deleteStory':
+        response = AdminService.deleteStory(postData.storyId, postData.passkey);
+        break;
       default:
-        response = { success: false, error: 'Invalid API Action' };
+        response = { success: false, error: 'Invalid API Action: ' + action };
     }
 
     return createJsonResponse(response);
@@ -108,9 +123,9 @@ function verifyRecaptcha(token) {
     var options = { method: 'post', payload: payload };
     var response = UrlFetchApp.fetch(url, options);
     var result = JSON.parse(response.getContentText());
-    return result.success && result.score >= 0.5;
+    return result.success && (result.score === undefined || result.score >= 0.5);
   } catch (e) {
-    return true; // Fail open to prevent user blocking
+    return true; // Fail open if API call fails
   }
 }
 
@@ -120,7 +135,11 @@ function verifyRecaptcha(token) {
 var Repository = {
   getSpreadsheet: function() {
     if (CONFIG.SHEET_ID) {
-      return SpreadsheetApp.openById(CONFIG.SHEET_ID);
+      try {
+        return SpreadsheetApp.openById(CONFIG.SHEET_ID);
+      } catch (e) {
+        Logger.log('Could not open spreadsheet by ID: ' + e.toString());
+      }
     }
     return SpreadsheetApp.getActiveSpreadsheet();
   },
@@ -130,6 +149,7 @@ var Repository = {
     var sheet = ss.getSheetByName(sheetName);
     if (!sheet) {
       sheet = ss.insertSheet(sheetName);
+      initSalusSheets();
     }
     return sheet;
   },
@@ -143,10 +163,13 @@ var Repository = {
     for (var i = 1; i < values.length; i++) {
       var row = values[i];
       var obj = {};
+      var isEmpty = true;
       for (var j = 0; j < headers.length; j++) {
-        obj[headers[j]] = row[j];
+        var val = row[j];
+        if (val !== '' && val !== null && val !== undefined) isEmpty = false;
+        obj[headers[j]] = val;
       }
-      data.push(obj);
+      if (!isEmpty) data.push(obj);
     }
     return data;
   },
@@ -163,11 +186,55 @@ var Repository = {
     var headers = data[0];
     var keyColIdx = headers.indexOf(keyColumnName);
     var targetColIdx = headers.indexOf(targetColumnName);
+
+    // Fallback case insensitive search
+    if (keyColIdx === -1) {
+      for (var k = 0; k < headers.length; k++) {
+        if (String(headers[k]).toLowerCase() === String(keyColumnName).toLowerCase()) {
+          keyColIdx = k;
+          break;
+        }
+      }
+    }
+    if (targetColIdx === -1) {
+      for (var k = 0; k < headers.length; k++) {
+        if (String(headers[k]).toLowerCase() === String(targetColumnName).toLowerCase()) {
+          targetColIdx = k;
+          break;
+        }
+      }
+    }
+
     if (keyColIdx === -1 || targetColIdx === -1) return false;
 
     for (var i = 1; i < data.length; i++) {
-      if (String(data[i][keyColIdx]) === String(keyValue)) {
+      if (String(data[i][keyColIdx]).trim() === String(keyValue).trim()) {
         sheet.getRange(i + 1, targetColIdx + 1).setValue(newValue);
+        return true;
+      }
+    }
+    return false;
+  },
+
+  deleteRowByKeyValue: function(sheetName, keyColumnName, keyValue) {
+    var sheet = this.getSheet(sheetName);
+    var data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return false;
+    var headers = data[0];
+    var keyColIdx = headers.indexOf(keyColumnName);
+    if (keyColIdx === -1) {
+      for (var k = 0; k < headers.length; k++) {
+        if (String(headers[k]).toLowerCase() === String(keyColumnName).toLowerCase()) {
+          keyColIdx = k;
+          break;
+        }
+      }
+    }
+    if (keyColIdx === -1) return false;
+
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][keyColIdx]).trim() === String(keyValue).trim()) {
+        sheet.deleteRow(i + 1);
         return true;
       }
     }
@@ -187,14 +254,21 @@ var DriveService = {
 
   uploadBase64File: function(base64Data, fileName, mimeType) {
     try {
+      if (!base64Data) return '';
+      // Strip data URI scheme header if present (e.g. data:application/pdf;base64,...)
+      var cleanBase64 = base64Data;
+      if (cleanBase64.indexOf('base64,') !== -1) {
+        cleanBase64 = cleanBase64.split('base64,')[1];
+      }
+
       var folder = this.getOrCreateFolder(CONFIG.DRIVE_ROOT_FOLDER_NAME);
-      var bytes = Utilities.base64Decode(base64Data);
-      var blob = Utilities.newBlob(bytes, mimeType, fileName);
-      var file = folder.createFile(blob);
+      var bytes = Utilities.base64Decode(cleanBase64);
+      var fileBlob = Utilities.newBlob(bytes, mimeType || 'application/pdf', fileName || 'Uploaded_Document');
+      var file = folder.createFile(fileBlob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       return file.getUrl();
     } catch (e) {
-      Logger.log('Drive Storage Upload Failed: ' + e.toString());
+      Logger.log('Drive Upload Failed: ' + e.toString());
       return '';
     }
   }
@@ -206,7 +280,9 @@ var DriveService = {
 var StoryService = {
   getPublishedStories: function() {
     var raw = Repository.getData('Stories');
-    var published = raw.filter(function(item) { return item.Status === 'Approved'; });
+    var published = raw.filter(function(item) {
+      return item.Status === 'Approved' || item.status === 'Approved';
+    });
     return { success: true, data: published, timestamp: new Date().toISOString() };
   },
 
@@ -234,7 +310,7 @@ var StoryService = {
       EmailService.sendStoryReceivedEmail(data.authorEmail, data.title);
     }
 
-    return { success: true, message: 'Story submitted for peer moderation.', storyId: storyId, timestamp: timestamp };
+    return { success: true, message: 'Story submitted for peer moderation.', storyId: storyId, id: storyId, timestamp: timestamp };
   }
 };
 
@@ -242,13 +318,21 @@ var ApplicationService = {
   createApplication: function(data) {
     var appId = 'APP-' + Date.now().toString().slice(-4);
     var timestamp = new Date().toISOString();
-    var resumeUrl = data.resumeUrl || '';
+    var resumeUrl = data.resumeUrl || data.resumeDriveUrl || '';
 
-    if (data.resumeBase64 && data.resumeFileName) {
-      resumeUrl = DriveService.uploadBase64File(data.resumeBase64, data.resumeFileName, 'application/pdf');
+    // Handle CV / Resume file upload (checks both cvBase64 and resumeBase64)
+    var base64Data = data.cvBase64 || data.resumeBase64 || '';
+    var fileName = data.cvFileName || data.resumeFileName || ('Resume_' + appId + '.pdf');
+    var mimeType = data.mimeType || 'application/pdf';
+
+    if (base64Data) {
+      var uploadedUrl = DriveService.uploadBase64File(base64Data, fileName, mimeType);
+      if (uploadedUrl) {
+        resumeUrl = uploadedUrl;
+      }
     }
 
-    var roleTrack = data.roleTrack || data.selectedTeam || 'Design';
+    var roleTrack = data.roleTrack || data.selectedTeam || data.roleInterest || 'Design';
 
     Repository.appendRow('Applicants', [
       appId, timestamp, sanitizeInput(data.fullName || data.name || ''),
@@ -259,7 +343,7 @@ var ApplicationService = {
       sanitizeInput(data.primarySkill || data.relevantSkills || ''),
       sanitizeInput(data.preferredWorkStyle || ''), sanitizeInput(data.pastExperience || ''),
       sanitizeInput(data.comfortSensitiveTopics || ''), resumeUrl,
-      sanitizeInput(data.whyThisTeam || data.statementOfIntent || ''),
+      sanitizeInput(data.whyThisTeam || data.statementOfIntent || data.motivationStatement || ''),
       'Submitted', 'Pending review'
     ]);
 
@@ -267,7 +351,7 @@ var ApplicationService = {
       EmailService.sendApplicationReceivedEmail(data.email, data.fullName || data.name, appId, roleTrack);
     }
 
-    return { success: true, message: 'Application submitted successfully!', applicationId: appId, timestamp: timestamp };
+    return { success: true, message: 'Application submitted successfully!', applicationId: appId, id: appId, resumeUrl: resumeUrl, timestamp: timestamp };
   }
 };
 
@@ -312,8 +396,15 @@ var FaqService = {
 };
 
 var AdminService = {
+  getApplicants: function(passkey) {
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) {
+      return { success: false, error: 'Unauthorized Access' };
+    }
+    return { success: true, data: Repository.getData('Applicants'), timestamp: new Date().toISOString() };
+  },
+
   getAdminData: function(passkey) {
-    if (passkey !== CONFIG.ADMIN_PASSKEY) {
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) {
       return { success: false, error: 'Unauthorized Administrative Access' };
     }
 
@@ -330,15 +421,27 @@ var AdminService = {
   },
 
   updateStoryStatus: function(storyId, status, passkey) {
-    if (passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
     var success = Repository.updateCellByKeyValue('Stories', 'ID', storyId, 'Status', status);
     return { success: success, message: 'Story status updated to ' + status };
   },
 
   updateApplicantStatus: function(applicantId, status, passkey) {
-    if (passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
     var success = Repository.updateCellByKeyValue('Applicants', 'ID', applicantId, 'Status', status);
     return { success: success, message: 'Applicant status updated to ' + status };
+  },
+
+  deleteApplicant: function(applicantId, passkey) {
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
+    var success = Repository.deleteRowByKeyValue('Applicants', 'ID', applicantId);
+    return { success: success, message: 'Applicant ' + applicantId + ' deleted from Google Sheet.' };
+  },
+
+  deleteStory: function(storyId, passkey) {
+    if (CONFIG.ADMIN_PASSKEY && passkey !== CONFIG.ADMIN_PASSKEY) return { success: false, error: 'Unauthorized' };
+    var success = Repository.deleteRowByKeyValue('Stories', 'ID', storyId);
+    return { success: success, message: 'Story ' + storyId + ' deleted from Google Sheet.' };
   }
 };
 
@@ -371,9 +474,6 @@ var EmailService = {
         "<p style='margin: 0; font-size: 14px; color: #96928C; line-height: 1.6;'>" +
           "Our peer selection committee will review your portfolio and statement of intent. You will hear from us via email within 3 to 5 business days." +
         "</p>" +
-      "</div>" +
-      "<div style='text-align: center; margin-top: 28px;'>" +
-        "<a href='https://salusinitiative.org/dashboard' style='display: inline-block; background: #FF7E67; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 600; padding: 14px 32px; border-radius: 9999px; box-shadow: 0 8px 24px rgba(255, 126, 103, 0.35);'>Track Application Status</a>" +
       "</div>";
 
     var html = getEmailTemplate(content);
@@ -430,11 +530,11 @@ function getEmailTemplate(bodyContent) {
 }
 
 function sanitizeInput(str) {
-  return String(str).replace(/<[^>]*>?/gm, '');
+  return String(str || '').replace(/<[^>]*>?/gm, '');
 }
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ==========================================
@@ -451,7 +551,7 @@ function initSalusSheets() {
     {
       name: 'Applicants',
       headers: ['ID', 'Timestamp', 'FullName', 'Email', 'PhoneNumber', 'SchoolCollege', 'Grade', 'InstagramId', 'SelectedTeam', 'PrimarySkill', 'WorkStyle', 'PastExperience', 'ComfortSensitiveTopics', 'ResumeUrl', 'WhyThisTeam', 'Status', 'AdminNotes'],
-      sample: ['APP-1001', new Date().toISOString(), 'Aarav Sharma', 'aarav@example.com', '+91 98765 43210', 'DPS R.K. Puram', '12th Grade', '@aarav_sharma', 'Design', 'Graphic Design & Zines', 'Remote & Independent', 'Designed school club posts', 'Highly Comfortable', 'https://behance.net/aarav', 'Passionate about student mental health graphics', 'Submitted', 'Pending review']
+      sample: ['APP-1001', new Date().toISOString(), 'Aarav Sharma', 'aarav@example.com', '+91 98765 43210', 'DPS R.K. Puram', '12th Grade', '@aarav_sharma', 'Design', 'Graphic Design & Zines', 'Remote & Independent', 'Designed school club posts', 'Highly Comfortable', 'https://drive.google.com/', 'Passionate about student mental health graphics', 'Submitted', 'Pending review']
     },
     {
       name: 'Subscribers',
@@ -487,5 +587,5 @@ function initSalusSheets() {
     }
   });
 
-  Logger.log('Salus Sheets Schema v4.0 Initialized Successfully!');
+  Logger.log('Salus Sheets Schema v5.0 Initialized Successfully!');
 }

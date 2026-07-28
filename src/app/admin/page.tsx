@@ -737,9 +737,9 @@ export default function AdminPage() {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[var(--card-inner-bg)]">
                     <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Email:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.email}</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Phone Number:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.phone || '+91 98765 43210'}</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">School / Institution:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.schoolOrOrg || 'DPS R.K. Puram'}</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Instagram ID:</span> <p className="font-semibold text-[var(--primary-accent)]">@candidate_handle</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Phone Number:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.phone || selectedApplicant.phoneNumber || 'Not provided'}</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">School / Institution:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.schoolOrOrg || selectedApplicant.schoolCollege || 'Not specified'}</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Instagram ID:</span> <p className="font-semibold text-[var(--primary-accent)]">{selectedApplicant.instagramId || 'None'}</p></div>
                   </div>
                 </div>
 
@@ -750,9 +750,9 @@ export default function AdminPage() {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[var(--card-inner-bg)]">
                     <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Selected Track:</span> <p className="font-bold text-[var(--primary-accent)]">{selectedApplicant.roleTrack || selectedApplicant.roleInterest}</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Primary Skill:</span> <p className="font-semibold text-[var(--text-main)]">Graphic Design & Figma Zines</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Preferred Work Style:</span> <p className="font-semibold text-[var(--text-main)]">Remote & Independent</p></div>
-                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Sensitive Topics Comfort:</span> <p className="font-semibold text-emerald-400">Highly Comfortable</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Primary Skill:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.primarySkill || 'Not specified'}</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Preferred Work Style:</span> <p className="font-semibold text-[var(--text-main)]">{selectedApplicant.preferredWorkStyle || 'Remote'}</p></div>
+                    <div><span className="text-[10px] text-[var(--text-muted)] font-mono">Sensitive Topics Comfort:</span> <p className="font-semibold text-emerald-400">{selectedApplicant.comfortSensitiveTopics || 'Comfortable'}</p></div>
                   </div>
                 </div>
 
@@ -764,7 +764,7 @@ export default function AdminPage() {
                   <div className="p-4 rounded-2xl bg-[var(--card-inner-bg)] space-y-3">
                     <div>
                       <span className="text-[10px] text-[var(--text-muted)] font-mono">Why This Team:</span>
-                      <p className="mt-1 text-[var(--text-main)] leading-relaxed">{selectedApplicant.statementOfIntent || selectedApplicant.motivationStatement || 'Passionate about student mental health graphics and storytelling.'}</p>
+                      <p className="mt-1 text-[var(--text-main)] leading-relaxed">{selectedApplicant.statementOfIntent || selectedApplicant.motivationStatement || selectedApplicant.whyThisTeam || 'No statement provided.'}</p>
                     </div>
                   </div>
                 </div>
@@ -773,16 +773,20 @@ export default function AdminPage() {
                 <div className="p-4 rounded-2xl bg-[var(--card-inner-bg)] flex items-center justify-between border border-white/10">
                   <div className="flex items-center gap-2">
                     <Paperclip className="w-4 h-4 text-[var(--primary-accent)]" />
-                    <span className="text-xs font-semibold text-[var(--text-main)]">Resume / CV File Attached</span>
+                    <span className="text-xs font-semibold text-[var(--text-main)]">
+                      {(selectedApplicant.resumeDriveUrl || selectedApplicant.resumeUrl) ? 'Resume / CV File Attached' : 'No Resume / CV Attached'}
+                    </span>
                   </div>
-                  <a
-                    href={selectedApplicant.resumeDriveUrl || '#'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-1.5 rounded-xl bg-[var(--primary-accent)] text-[var(--button-text)] text-xs font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-peach-glow"
-                  >
-                    View File in Google Drive
-                  </a>
+                  {(selectedApplicant.resumeDriveUrl || selectedApplicant.resumeUrl) && (
+                    <a
+                      href={selectedApplicant.resumeDriveUrl || selectedApplicant.resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl bg-[var(--primary-accent)] text-[var(--button-text)] text-xs font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-peach-glow"
+                    >
+                      View File in Google Drive
+                    </a>
+                  )}
                 </div>
 
               </div>

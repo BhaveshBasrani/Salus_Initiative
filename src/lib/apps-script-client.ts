@@ -1,4 +1,4 @@
-import { Story, Applicant, Resource, WhisperQuote, EventItem, AdminAnalytics } from './types';
+import { Story, Applicant, Resource, WhisperQuote, FAQItem, EventItem, AdminAnalytics, ApiResponse } from './types';
 
 const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL || '';
 
@@ -9,6 +9,8 @@ export interface StorySubmissionPayload {
   authorEmail?: string;
   isAnonymous?: boolean;
   content: string;
+  imageFileName?: string;
+  imageBase64?: string;
   recaptchaToken?: string;
 }
 
@@ -16,40 +18,32 @@ export interface VolunteerApplicationPayload {
   fullName: string;
   email: string;
   schoolOrOrg?: string;
-  roleInterest: string;
+  schoolCollege?: string;
+  grade?: string;
+  gradeOrTitle?: string;
+  roleInterest?: string;
   roleTrack?: string;
+  selectedTeam?: string;
   motivationStatement?: string;
   statementOfIntent?: string;
+  whyThisTeam?: string;
   phone?: string;
+  phoneNumber?: string;
   instagram?: string;
+  instagramId?: string;
+  primarySkill?: string;
+  preferredWorkStyle?: string;
+  pastExperience?: string;
+  comfortSensitiveTopics?: string;
   resumeDriveUrl?: string;
+  resumeUrl?: string;
+  resumeFileName?: string;
+  resumeBase64?: string;
   cvBase64?: string;
   cvFileName?: string;
+  mimeType?: string;
   recaptchaToken?: string;
 }
-
-export interface NewsletterPayload {
-  email: string;
-  categoryInterest?: string;
-}
-
-export interface ContactPayload {
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
-}
-
-export interface ApiResponse {
-  success: boolean;
-  message?: string;
-  id?: string;
-  error?: string;
-  data?: any;
-  timestamp?: string;
-}
-
-import { FAQItem } from './types';
 
 export const MOCK_FAQS: FAQItem[] = [
   {
@@ -168,19 +162,6 @@ export const MOCK_APPLICANTS: Applicant[] = [
     submittedAt: "2026-07-26T14:30:00Z",
     status: "Submitted",
   },
-  {
-    id: 'APP-902',
-    fullName: "Priya Patel",
-    name: "Priya Patel",
-    email: "priya.patel@example.com",
-    roleInterest: "Marketing",
-    roleTrack: "Marketing",
-    schoolOrOrg: "DPS R.K. Puram",
-    statementOfIntent: "Experience in running school wellness workshops and social outreach campaigns.",
-    availabilityHours: 8,
-    submittedAt: "2026-07-24T10:15:00Z",
-    status: "Interview Scheduled",
-  },
 ];
 
 export const MOCK_APPLICATIONS = MOCK_APPLICANTS;
@@ -214,30 +195,100 @@ export const MOCK_ANALYTICS: AdminAnalytics = {
 
 // Unified API Client Service
 export const AppsScriptClient = {
+  /**
+   * Fetch approved stories for general view
+   */
   async getStories(): Promise<Story[]> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) return [];
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getStories`, { method: 'GET' });
       if (!res.ok) return [];
       const json = await res.json();
-      return json.data || [];
-    } catch {
+      const rawList = json.data || [];
+
+      return rawList.map((item: any) => ({
+        id: String(item.ID || item.id || `st-${Math.random()}`),
+        title: item.Title || item.title || 'Untitled Story',
+        category: item.Category || item.category || 'Student Voice',
+        authorName: item.AuthorName || item.authorName || (item.IsAnonymous === 'TRUE' ? 'Anonymous' : 'Peer'),
+        authorEmail: item.AuthorEmail || item.authorEmail || '',
+        isAnonymous: item.IsAnonymous === 'TRUE' || item.isAnonymous === true,
+        content: item.Content || item.content || '',
+        excerpt: item.Excerpt || item.excerpt || (item.Content ? item.Content.slice(0, 120) + '...' : ''),
+        imageUrl: item.ImageUrl || item.imageUrl || '',
+        status: item.Status || item.status || 'Approved',
+        publishedAt: item.PublishedAt || item.publishedAt || item.Timestamp || item.date || new Date().toISOString(),
+        readTime: item.readTime || '3 min read',
+        likes: Number(item.Likes || item.likes || 0),
+      }));
+    } catch (err) {
+      console.error('getStories fetch error:', err);
       return [];
     }
   },
 
+  /**
+   * Fetch applicant submissions for administrative view
+   */
   async getApplicants(passkey: string): Promise<Applicant[]> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) return [];
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getApplicants&passkey=${encodeURIComponent(passkey)}`, { method: 'GET' });
       if (!res.ok) return [];
       const json = await res.json();
-      return json.data || [];
-    } catch {
+      const rawList = json.data || [];
+
+      return rawList.map((item: any) => ({
+        id: String(item.ID || item.id || `APP-${Math.random().toString().slice(-4)}`),
+        timestamp: item.Timestamp || item.timestamp || item.submittedAt || new Date().toISOString(),
+        submittedAt: item.Timestamp || item.timestamp || item.submittedAt || new Date().toISOString(),
+        fullName: item.FullName || item.fullName || item.name || 'Anonymous Applicant',
+        name: item.FullName || item.fullName || item.name || 'Anonymous Applicant',
+        email: item.Email || item.email || '',
+        phone: item.PhoneNumber || item.phone || item.phoneNumber || '',
+        schoolOrOrg: item.SchoolCollege || item.schoolOrOrg || '',
+        schoolCollege: item.SchoolCollege || item.schoolOrOrg || '',
+        grade: item.Grade || item.grade || '',
+        instagramId: item.InstagramId || item.instagramId || '',
+        roleInterest: item.SelectedTeam || item.selectedTeam || item.roleInterest || item.roleTrack || 'Design',
+        roleTrack: item.SelectedTeam || item.selectedTeam || item.roleInterest || item.roleTrack || 'Design',
+        primarySkill: item.PrimarySkill || item.primarySkill || '',
+        preferredWorkStyle: item.WorkStyle || item.preferredWorkStyle || '',
+        pastExperience: item.PastExperience || item.pastExperience || '',
+        comfortSensitiveTopics: item.ComfortSensitiveTopics || item.comfortSensitiveTopics || '',
+        resumeDriveUrl: item.ResumeUrl || item.resumeUrl || item.resumeDriveUrl || '',
+        resumeUrl: item.ResumeUrl || item.resumeUrl || item.resumeDriveUrl || '',
+        motivationStatement: item.WhyThisTeam || item.whyThisTeam || item.motivationStatement || item.statementOfIntent || '',
+        statementOfIntent: item.WhyThisTeam || item.whyThisTeam || item.motivationStatement || item.statementOfIntent || '',
+        status: item.Status || item.status || 'Submitted',
+        notes: item.AdminNotes || item.adminNotes || item.notes || '',
+      }));
+    } catch (err) {
+      console.error('getApplicants fetch error:', err);
       return [];
     }
   },
 
+  /**
+   * Fetch full admin payload (stories, applicants, subscribers, logs)
+   */
+  async getAdminData(passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) {
+      return { success: false, message: 'Backend URL missing', timestamp: new Date().toISOString() };
+    }
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getAdminData&passkey=${encodeURIComponent(passkey)}`, { method: 'GET' });
+      if (!res.ok) return { success: false, message: 'Server returned error ' + res.status, timestamp: new Date().toISOString() };
+      return await res.json();
+    } catch (err: any) {
+      console.error('getAdminData error:', err);
+      return { success: false, message: err?.message || 'Network error', timestamp: new Date().toISOString() };
+    }
+  },
+
+  /**
+   * Submit a community story
+   */
   async submitStory(payload: StorySubmissionPayload): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return {
@@ -252,19 +303,23 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'submitStory', ...payload }),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       const json = await res.json();
       return json;
     } catch (err: any) {
       console.error('submitStory error:', err);
       return {
         success: false,
-        message: err?.message || 'Failed to submit story to backend.',
-        error: 'Network or CORS error connecting to Apps Script.',
+        message: err?.message || 'Failed to submit story to server.',
+        error: 'Network or CORS connection failure.',
+        timestamp: new Date().toISOString(),
       };
     }
   },
 
+  /**
+   * Submit a volunteer fellowship application (with CV upload)
+   */
   async submitApplication(payload: VolunteerApplicationPayload): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return {
@@ -275,27 +330,44 @@ export const AppsScriptClient = {
       };
     }
     try {
+      const base64Data = payload.resumeBase64 || payload.cvBase64 || '';
+      const fileName = payload.resumeFileName || payload.cvFileName || 'Resume.pdf';
+
+      const fullPayload = {
+        action: 'submitApplication',
+        ...payload,
+        resumeBase64: base64Data,
+        cvBase64: base64Data,
+        resumeFileName: fileName,
+        cvFileName: fileName,
+      };
+
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'submitApplication', ...payload }),
+        body: JSON.stringify(fullPayload),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       const json = await res.json();
       return json;
     } catch (err: any) {
       console.error('submitApplication error:', err);
       return {
         success: false,
-        message: err?.message || 'Failed to submit application to backend.',
-        error: 'Network or CORS error connecting to Apps Script.',
+        message: err?.message || 'Failed to submit application to server.',
+        error: 'Network or CORS connection failure.',
+        timestamp: new Date().toISOString(),
       };
     }
   },
 
+  /**
+   * Update story moderation status (Approved, Rejected, Needs Revision)
+   */
   async updateStoryStatus(storyId: string, status: string, passkey: string): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
-      return { success: true, message: `Story ${storyId} status updated to ${status}.` };
+      return { success: true, message: `Story ${storyId} status updated to ${status}.`, timestamp: new Date().toISOString() };
     }
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
@@ -303,17 +375,20 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateStoryStatus', storyId, status, passkey }),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       return await res.json();
     } catch (err: any) {
       console.error('updateStoryStatus error:', err);
-      return { success: false, message: 'Network error updating story status.' };
+      return { success: false, message: 'Network error updating story status.', timestamp: new Date().toISOString() };
     }
   },
 
+  /**
+   * Update applicant status (Under Review, Accepted, Rejected)
+   */
   async updateApplicantStatus(applicantId: string, status: string, passkey: string): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
-      return { success: true, message: `Applicant ${applicantId} status updated to ${status}.` };
+      return { success: true, message: `Applicant ${applicantId} status updated to ${status}.`, timestamp: new Date().toISOString() };
     }
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
@@ -321,17 +396,20 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateApplicantStatus', applicantId, status, passkey }),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       return await res.json();
     } catch (err: any) {
       console.error('updateApplicantStatus error:', err);
-      return { success: false, message: 'Network error updating applicant status.' };
+      return { success: false, message: 'Network error updating applicant status.', timestamp: new Date().toISOString() };
     }
   },
 
+  /**
+   * Delete an applicant entry from Google Sheets
+   */
   async deleteApplicant(applicantId: string, passkey: string): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
-      return { success: true, message: `Applicant ${applicantId} deleted.` };
+      return { success: true, message: `Applicant ${applicantId} deleted.`, timestamp: new Date().toISOString() };
     }
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
@@ -339,17 +417,20 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteApplicant', applicantId, passkey }),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       return await res.json();
     } catch (err: any) {
       console.error('deleteApplicant error:', err);
-      return { success: false, message: 'Network error deleting applicant.' };
+      return { success: false, message: 'Network error deleting applicant entry.', timestamp: new Date().toISOString() };
     }
   },
 
+  /**
+   * Delete a story entry from Google Sheets
+   */
   async deleteStory(storyId: string, passkey: string): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
-      return { success: true, message: `Story ${storyId} deleted.` };
+      return { success: true, message: `Story ${storyId} deleted.`, timestamp: new Date().toISOString() };
     }
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
@@ -357,11 +438,11 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
       });
-      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
       return await res.json();
     } catch (err: any) {
       console.error('deleteStory error:', err);
-      return { success: false, message: 'Network error deleting story.' };
+      return { success: false, message: 'Network error deleting story entry.', timestamp: new Date().toISOString() };
     }
   },
 };

@@ -145,40 +145,53 @@ export function VolunteerWizard() {
     setIsSubmitting(true);
 
     try {
+      const token = await getRecaptchaToken('submit_volunteer');
       const payload = {
         fullName: formData.fullName,
+        name: formData.fullName,
         email: formData.email,
+        schoolCollege: formData.schoolCollege,
         schoolOrOrg: formData.schoolCollege,
+        grade: formData.grade,
         roleInterest: formData.selectedTeam,
         roleTrack: formData.selectedTeam,
+        selectedTeam: formData.selectedTeam,
         motivationStatement: formData.whyThisTeam,
         statementOfIntent: formData.whyThisTeam,
+        whyThisTeam: formData.whyThisTeam,
         phone: formData.phoneNumber,
-        instagram: formData.instagramId,
+        phoneNumber: formData.phoneNumber,
+        instagramId: formData.instagramId,
+        primarySkill: formData.primarySkill,
+        preferredWorkStyle: formData.preferredWorkStyle,
+        pastExperience: formData.pastExperience,
+        comfortSensitiveTopics: formData.comfortSensitiveTopics,
         resumeDriveUrl: formData.resumeUrl,
+        resumeUrl: formData.resumeUrl,
         cvBase64: base64CvData,
+        resumeBase64: base64CvData,
         cvFileName: uploadedFileName,
-        recaptchaToken: 'mock-recaptcha-token',
+        resumeFileName: uploadedFileName,
+        recaptchaToken: token,
       };
 
       const res = await AppsScriptClient.submitApplication(payload);
 
       if (res.success) {
         setIsSubmitted(true);
-        toast.success('Fellowship application logged in Google Apps Script database!');
+        toast.success('Fellowship application submitted successfully!');
 
         setUserApplication({
-          id: res.id || `APP-${Date.now()}`,
+          id: res.applicationId || res.id || `APP-${Date.now()}`,
           track: formData.selectedTeam,
-          status: 'Submitted & Logged',
+          status: 'Submitted',
           submittedAt: new Date().toISOString(),
         });
       } else {
-        toast.error(res.error || 'Submission failed');
+        toast.error(res.message || res.error || 'Submission failed');
       }
-    } catch {
-      toast.error('Network issue. Saved locally.');
-      setIsSubmitted(true);
+    } catch (err: any) {
+      toast.error(err?.message || 'Network submission issue.');
     } finally {
       setIsSubmitting(false);
     }
