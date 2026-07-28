@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { assetPath } from '@/lib/prefix';
 import {
   Search,
   PenSquare,
@@ -79,7 +80,7 @@ export function DynamicIsland() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-9 h-9 md:w-10 md:h-10 shrink-0 transition-transform group-hover:scale-105">
               <Image
-                src="/Logo.png"
+                src={assetPath('/Logo.png')}
                 alt="Salus Initiative Logo"
                 fill
                 sizes="(max-width: 768px) 36px, 40px"

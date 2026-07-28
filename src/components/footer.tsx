@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Shield, PhoneCall, ExternalLink, Send } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
+import { assetPath } from '@/lib/prefix';
 import { toast } from 'sonner';
 
 export function Footer() {
@@ -68,7 +69,7 @@ export function Footer() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="relative w-7 h-7 rounded-lg bg-[var(--card-inner-bg)] border border-white/10 flex items-center justify-center">
-                <Image src="/Logo.png" alt="Salus Logo" width={20} height={20} className="object-contain logo-invert" />
+                <Image src={assetPath('/Logo.png')} alt="Salus Logo" width={20} height={20} className="object-contain logo-invert" />
               </div>
               <span className="editorial-title text-base font-bold text-[var(--text-main)]">
                 SALUS <span className="font-light opacity-70">INITIATIVE</span>

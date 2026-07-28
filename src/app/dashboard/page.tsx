@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { assetPath } from '@/lib/prefix';
 import {
   User,
   LogOut,
@@ -262,7 +263,7 @@ export default function UserDashboardPage() {
           {/* Header */}
           <div className="text-center space-y-1.5">
             <div className="relative w-10 h-10 mx-auto mb-2 rounded-xl bg-[var(--card-inner-bg)] border border-white/10 flex items-center justify-center">
-              <Image src="/Logo.png" alt="Salus Logo" width={24} height={24} className="object-contain logo-invert" />
+              <Image src={assetPath('/Logo.png')} alt="Salus Logo" width={24} height={24} className="object-contain logo-invert" />
             </div>
             <h1 className="editorial-title text-2xl font-bold text-[var(--text-main)]">
               {authMode === 'signup' ? 'Create Account' : authMode === 'magic' ? 'Magic Sign In' : 'Sign in to Salus'}

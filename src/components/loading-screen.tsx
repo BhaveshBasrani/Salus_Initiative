@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, RefreshCw, Mail } from 'lucide-react';
+import { assetPath } from '@/lib/prefix';
 
 export function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +60,7 @@ export function LoadingScreen() {
             className="relative w-20 h-20 md:w-24 md:h-24 mb-6"
           >
             <Image
-              src="/Logo.png"
+              src={assetPath('/Logo.png')}
               alt="Salus Logo"
               fill
               className="object-contain logo-invert"

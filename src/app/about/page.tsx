@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Shield, Heart, ChevronDown, Users, BookOpen, Sparkles, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { MOCK_FAQS } from '@/lib/apps-script-client';
+import { assetPath } from '@/lib/prefix';
 
 export default function AboutPage() {
   const [activeFaqCategory, setActiveFaqCategory] = useState<string>('All');
@@ -44,7 +45,7 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto bg-[var(--card-bg)] p-6 md:p-12 rounded-3xl border border-white/10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center shadow-editorial transition-colors duration-300 relative overflow-hidden">
           <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-2xl overflow-hidden bg-[var(--card-inner-bg)] p-6 border border-white/10 flex items-center justify-center">
             <Image
-              src="/Logo.png"
+              src={assetPath('/Logo.png')}
               alt="Salus Initiative Vintage Anatomical Illustration"
               fill
               className="object-contain p-6 filter logo-invert"

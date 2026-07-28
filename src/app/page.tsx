@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { assetPath } from '@/lib/prefix';
 import {
   PenSquare,
   BookOpen,
@@ -89,7 +90,7 @@ export default function HomePage() {
 
               <div className="relative w-48 h-48 mx-auto my-4 flex items-center justify-center">
                 <Image
-                  src="/Logo.png"
+                  src={assetPath('/Logo.png')}
                   alt="Anatomy of Mental Sanctuary Brain Illustration"
                   fill
                   className="object-contain logo-invert drop-shadow-2xl hover:scale-105 transition-transform duration-300"
