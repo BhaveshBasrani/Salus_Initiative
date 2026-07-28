@@ -75,13 +75,14 @@ export function DynamicIsland() {
               : 'mt-0 px-6 py-3.5 rounded-none md:rounded-b-3xl border-b border-white/10 border-t-0 bg-[var(--card-bg)]/80 backdrop-blur-lg w-full max-w-7xl'
           }`}
         >
-          {/* Logo & Brand Identity (Clean, Large, No Outline Box) */}
+          {/* Logo & Brand Identity */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-9 h-9 md:w-10 md:h-10 shrink-0 transition-transform group-hover:scale-105">
               <Image
                 src="/Logo.png"
                 alt="Salus Initiative Logo"
                 fill
+                sizes="(max-width: 768px) 36px, 40px"
                 className="object-contain logo-invert"
                 priority
               />

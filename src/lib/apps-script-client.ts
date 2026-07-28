@@ -49,6 +49,33 @@ export interface ApiResponse {
   timestamp?: string;
 }
 
+export const MOCK_FAQS = [
+  {
+    id: 'faq-1',
+    question: 'Is Salus Initiative a clinical therapy service?',
+    answer: 'No. Salus Initiative is a non-clinical, peer-led emotional sanctuary and educational movement. We provide grounding toolkits, anonymous story sharing, and peer advocacy circles. If you are experiencing an immediate mental health emergency, please consult our crisis helpline directory.',
+    audienceCategory: 'Students',
+  },
+  {
+    id: 'faq-2',
+    question: 'How are shared peer stories moderated for safety?',
+    answer: 'All submitted narratives undergo a 2-step review by trained student moderators and adult mentors to ensure they contain no triggering descriptions or unsafe content before being published.',
+    audienceCategory: 'Students',
+  },
+  {
+    id: 'faq-3',
+    question: 'Can parents participate in Salus events and workshops?',
+    answer: 'Yes! We offer dedicated parent guidance Playbooks, monthly reflection zines, and joint school-community wellness forums designed to bridge student-parent communication.',
+    audienceCategory: 'Parents',
+  },
+  {
+    id: 'faq-4',
+    question: 'How can a high school or college charter a Salus Chapter?',
+    answer: 'Schools can apply through our Volunteer & Fellowship portal. Approved chapters receive starter funding, executive board toolkits, and leadership coaching.',
+    audienceCategory: 'Schools',
+  },
+];
+
 export const MOCK_WHISPERS: WhisperQuote[] = [
   {
     id: 'w-1',
@@ -152,6 +179,19 @@ export const MOCK_APPLICANTS: Applicant[] = [
 
 export const MOCK_APPLICATIONS = MOCK_APPLICANTS;
 
+export const MOCK_RESOURCES: Resource[] = [
+  {
+    id: 'res-1',
+    title: "Grounding Techniques for Acute Panic",
+    category: "Crisis Support",
+    description: "5-4-3-2-1 sensory grounding guide for immediate relief.",
+    tags: ["Anxiety", "Grounding"],
+    readTime: "3 min read",
+    isFeatured: true,
+    downloadUrl: "#",
+  },
+];
+
 export const MOCK_ANALYTICS: AdminAnalytics = {
   totalVisitors: 4820,
   newsletterSubscribers: 1240,
@@ -162,8 +202,6 @@ export const MOCK_ANALYTICS: AdminAnalytics = {
   topSearchQueries: [
     { query: 'Anxiety relief', count: 184 },
     { query: 'Exam stress', count: 142 },
-    { query: 'Parent guide', count: 96 },
-    { query: 'Crisis helpline', count: 88 },
   ],
   deviceBreakdown: { desktop: 54, mobile: 38, tablet: 8 },
 };
@@ -171,9 +209,10 @@ export const MOCK_ANALYTICS: AdminAnalytics = {
 // Unified API Client Service
 export const AppsScriptClient = {
   async getStories(): Promise<Story[]> {
-    if (!APPS_SCRIPT_URL) return MOCK_STORIES;
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) return [];
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getStories`, { method: 'GET' });
+      if (!res.ok) return [];
       const json = await res.json();
       return json.data || [];
     } catch {
@@ -182,9 +221,10 @@ export const AppsScriptClient = {
   },
 
   async getApplicants(passkey: string): Promise<Applicant[]> {
-    if (!APPS_SCRIPT_URL) return [];
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) return [];
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getApplicants&passkey=${encodeURIComponent(passkey)}`, { method: 'GET' });
+      if (!res.ok) return [];
       const json = await res.json();
       return json.data || [];
     } catch {
@@ -193,7 +233,7 @@ export const AppsScriptClient = {
   },
 
   async submitStory(payload: StorySubmissionPayload): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return {
         success: true,
         message: 'Your story has been submitted for peer moderation.',
@@ -206,6 +246,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'submitStory', ...payload }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return {
@@ -217,7 +258,7 @@ export const AppsScriptClient = {
   },
 
   async submitApplication(payload: VolunteerApplicationPayload): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return {
         success: true,
         message: 'Thank you for applying for the Salus Fellowship!',
@@ -231,6 +272,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'submitApplication', ...payload }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return {
@@ -243,7 +285,7 @@ export const AppsScriptClient = {
   },
 
   async updateStoryStatus(storyId: string, status: string, passkey: string): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return { success: true, message: `Story ${storyId} status updated to ${status}.` };
     }
     try {
@@ -252,6 +294,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'updateStoryStatus', storyId, status, passkey }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return { success: true, message: `Status updated.` };
@@ -259,7 +302,7 @@ export const AppsScriptClient = {
   },
 
   async updateApplicantStatus(applicantId: string, status: string, passkey: string): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return { success: true, message: `Applicant ${applicantId} status updated to ${status}.` };
     }
     try {
@@ -268,6 +311,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'updateApplicantStatus', applicantId, status, passkey }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return { success: true, message: `Status updated.` };
@@ -275,7 +319,7 @@ export const AppsScriptClient = {
   },
 
   async deleteApplicant(applicantId: string, passkey: string): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return { success: true, message: `Applicant ${applicantId} deleted.` };
     }
     try {
@@ -284,6 +328,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'deleteApplicant', applicantId, passkey }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return { success: true, message: `Applicant deleted.` };
@@ -291,7 +336,7 @@ export const AppsScriptClient = {
   },
 
   async deleteStory(storyId: string, passkey: string): Promise<ApiResponse> {
-    if (!APPS_SCRIPT_URL) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
       return { success: true, message: `Story ${storyId} deleted.` };
     }
     try {
@@ -300,6 +345,7 @@ export const AppsScriptClient = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
       });
+      if (!res.ok) return { success: false, message: 'Server error.' };
       return await res.json();
     } catch {
       return { success: true, message: `Story deleted.` };
