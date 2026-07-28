@@ -270,6 +270,40 @@ export const AppsScriptClient = {
   },
 
   /**
+   * Fetch all story submissions for administrative view (including Pending & Revision)
+   */
+  async getAllStoriesAdmin(passkey: string): Promise<Story[]> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo') || APPS_SCRIPT_URL.length < 10) return [];
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getAdminData&passkey=${encodeURIComponent(passkey)}`, { method: 'GET' });
+      if (!res.ok) return [];
+      const json = await res.json();
+      const rawList = (json.data && Array.isArray(json.data.stories))
+        ? json.data.stories
+        : (Array.isArray(json.data) ? json.data : []);
+
+      return rawList.map((item: any) => ({
+        id: String(item.ID || item.id || `st-${Math.random()}`),
+        title: item.Title || item.title || 'Untitled Story',
+        category: item.Category || item.category || 'Student Voice',
+        authorName: item.AuthorName || item.authorName || (item.IsAnonymous === 'TRUE' || item.isAnonymous === true ? 'Anonymous' : 'Peer'),
+        authorEmail: item.AuthorEmail || item.authorEmail || '',
+        isAnonymous: item.IsAnonymous === 'TRUE' || item.isAnonymous === true,
+        content: item.Content || item.content || '',
+        excerpt: item.Excerpt || item.excerpt || (item.Content ? String(item.Content).slice(0, 120) + '...' : ''),
+        imageUrl: item.ImageUrl || item.imageUrl || '',
+        status: item.Status || item.status || 'Pending',
+        publishedAt: item.PublishedAt || item.publishedAt || item.Timestamp || item.date || new Date().toISOString(),
+        readTime: item.readTime || '3 min read',
+        likes: Number(item.Likes || item.likes || 0),
+      }));
+    } catch (err) {
+      console.error('getAllStoriesAdmin fetch error:', err);
+      return [];
+    }
+  },
+
+  /**
    * Fetch full admin payload (stories, applicants, subscribers, logs)
    */
   async getAdminData(passkey: string): Promise<ApiResponse> {

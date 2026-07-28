@@ -73,7 +73,7 @@ export default function AdminPage() {
       setIsFetchingData(true);
       Promise.all([
         AppsScriptClient.getApplicants('salus2026'),
-        AppsScriptClient.getStories(),
+        AppsScriptClient.getAllStoriesAdmin('salus2026'),
       ])
         .then(([appData, storyData]) => {
           setApplicants(appData || []);
@@ -250,7 +250,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-main)] py-10 px-4 md:px-8 select-none transition-colors duration-300 pt-20">
+    <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-main)] px-4 md:px-8 select-none transition-colors duration-300 pt-28 md:pt-32 pb-16">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Admin Header Bar */}
@@ -330,18 +330,18 @@ export default function AdminPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`relative px-4 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap ${
-                  isActive ? 'text-[var(--active-pill-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  isActive ? 'text-[var(--active-pill-text)] font-bold' : 'text-[var(--text-main)]/80 hover:text-[var(--text-main)]'
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeAdminTabPill"
                     transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                    className="absolute inset-0 bg-[var(--primary-accent)] rounded-full shadow-peach-glow -z-10"
+                    className="absolute inset-0 bg-[var(--primary-accent)] rounded-full shadow-peach-glow z-0"
                   />
                 )}
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <Icon className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10">{tab.label}</span>
               </button>
             );
           })}
