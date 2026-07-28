@@ -249,16 +249,18 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'submitStory', ...payload }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
-      return await res.json();
-    } catch {
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      const json = await res.json();
+      return json;
+    } catch (err: any) {
+      console.error('submitStory error:', err);
       return {
-        success: true,
-        message: 'Story submitted successfully!',
-        timestamp: new Date().toISOString(),
+        success: false,
+        message: err?.message || 'Failed to submit story to backend.',
+        error: 'Network or CORS error connecting to Apps Script.',
       };
     }
   },
@@ -275,17 +277,18 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'submitApplication', ...payload }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
-      return await res.json();
-    } catch {
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      const json = await res.json();
+      return json;
+    } catch (err: any) {
+      console.error('submitApplication error:', err);
       return {
-        success: true,
-        message: 'Application submitted successfully!',
-        data: { applicationId: `APP-${Date.now().toString().slice(-4)}` },
-        timestamp: new Date().toISOString(),
+        success: false,
+        message: err?.message || 'Failed to submit application to backend.',
+        error: 'Network or CORS error connecting to Apps Script.',
       };
     }
   },
@@ -297,13 +300,14 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateStoryStatus', storyId, status, passkey }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
       return await res.json();
-    } catch {
-      return { success: true, message: `Status updated.` };
+    } catch (err: any) {
+      console.error('updateStoryStatus error:', err);
+      return { success: false, message: 'Network error updating story status.' };
     }
   },
 
@@ -314,13 +318,14 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateApplicantStatus', applicantId, status, passkey }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
       return await res.json();
-    } catch {
-      return { success: true, message: `Status updated.` };
+    } catch (err: any) {
+      console.error('updateApplicantStatus error:', err);
+      return { success: false, message: 'Network error updating applicant status.' };
     }
   },
 
@@ -331,13 +336,14 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteApplicant', applicantId, passkey }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
       return await res.json();
-    } catch {
-      return { success: true, message: `Applicant deleted.` };
+    } catch (err: any) {
+      console.error('deleteApplicant error:', err);
+      return { success: false, message: 'Network error deleting applicant.' };
     }
   },
 
@@ -348,13 +354,14 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
       });
-      if (!res.ok) return { success: false, message: 'Server error.' };
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
       return await res.json();
-    } catch {
-      return { success: true, message: `Story deleted.` };
+    } catch (err: any) {
+      console.error('deleteStory error:', err);
+      return { success: false, message: 'Network error deleting story.' };
     }
   },
 };

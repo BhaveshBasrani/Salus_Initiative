@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import '@/styles/globals.css';
 import { DynamicIsland } from '@/components/dynamic-island';
 import { Footer } from '@/components/footer';
@@ -8,6 +9,8 @@ import { VolunteerWizard } from '@/components/volunteer-wizard';
 import { LoadingScreen } from '@/components/loading-screen';
 import { ThemeInitializer } from '@/components/theme-initializer';
 import { Toaster } from 'sonner';
+
+const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Lf9R2ktAAAAAFR1Q-8N_bO9F-R6u2W35yuJyoC7';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://salusinitiative.org'),
@@ -46,6 +49,10 @@ export default function RootLayout({
         <StoryModal />
         <VolunteerWizard />
         <Toaster position="top-right" theme="dark" />
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

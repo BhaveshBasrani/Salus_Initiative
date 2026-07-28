@@ -8,6 +8,7 @@ import { useAppStore } from '@/lib/store';
 import { useAuthStore } from '@/lib/auth-store';
 import { AppsScriptClient } from '@/lib/apps-script-client';
 import { toast } from 'sonner';
+import { getRecaptchaToken } from '@/lib/recaptcha';
 
 export function StoryModal() {
   const router = useRouter();
@@ -69,6 +70,7 @@ export function StoryModal() {
 
     setIsSubmitting(true);
     try {
+      const token = await getRecaptchaToken('submit_story');
       const res = await AppsScriptClient.submitStory({
         title: formData.title,
         category: formData.category,
@@ -76,7 +78,7 @@ export function StoryModal() {
         authorEmail: formData.authorEmail || user.email || '',
         isAnonymous: formData.isAnonymous,
         content: formData.content,
-        recaptchaToken: 'mock-recaptcha-pass',
+        recaptchaToken: token,
       });
 
       if (res.success) {
