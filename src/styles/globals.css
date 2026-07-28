@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* ==========================================
+   THEME VARIABLE DEFINITIONS
+   ========================================== */
+
+/* WARM PEACH THEME (DEFAULT) */
+html[data-user-theme="warm-peach"], html:not([data-user-theme]) {
+  --app-bg: #0C0D0E;
+  --card-bg: #141518;
+  --card-inner-bg: #1C1E22;
+  --primary-accent: #FF7E67;
+  --accent-hover: #F69A84;
+  --text-main: #F8F7F4;
+  --text-muted: #96928C;
+  --active-pill-text: #FFFFFF;
+  --button-text: #FFFFFF;
+  --glow-color: rgba(255, 126, 103, 0.35);
+}
+
+/* DARK OBSIDIAN THEME */
+html[data-user-theme="dark-obsidian"] {
+  --app-bg: #030406;
+  --card-bg: #0A0C10;
+  --card-inner-bg: #12151C;
+  --primary-accent: #00F0FF;
+  --accent-hover: #38BDF8;
+  --text-main: #FFFFFF;
+  --text-muted: #94A3B8;
+  --active-pill-text: #030406;
+  --button-text: #030406;
+  --glow-color: rgba(0, 240, 255, 0.35);
+}
+
+/* RENDERVOID CRIMSON THEME */
+html[data-user-theme="rendervoid-crimson"] {
+  --app-bg: #0D0607;
+  --card-bg: #180D0F;
+  --card-inner-bg: #241417;
+  --primary-accent: #CE2029;
+  --accent-hover: #E0353E;
+  --text-main: #FFF5F5;
+  --text-muted: #A88B8E;
+  --active-pill-text: #FFFFFF;
+  --button-text: #FFFFFF;
+  --glow-color: rgba(206, 32, 41, 0.35);
+}
+
+/* MIDNIGHT SLATE THEME */
+html[data-user-theme="midnight-slate"] {
+  --app-bg: #0F172A;
+  --card-bg: #1E293B;
+  --card-inner-bg: #334155;
+  --primary-accent: #38BDF8;
+  --accent-hover: #7DD3FC;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --active-pill-text: #0F172A;
+  --button-text: #0F172A;
+  --glow-color: rgba(56, 189, 248, 0.35);
+}
+
+@layer base {
+  :root {
+    --background: var(--app-bg);
+    --foreground: var(--text-main);
+    --radius: 1.25rem;
+    
+    --font-playfair: 'Playfair Display', 'Cormorant Garamond', serif;
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+body {
+  color: var(--text-main) !important;
+  background-color: var(--app-bg) !important;
+  font-family: var(--font-jakarta);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Fast, Snappy Button & Link Transitions */
+button, a {
+  transition: background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:active, a:active {
+  transform: scale(0.97);
+}
+
+/* Clear Logo Brightness utility for dark themes */
+.logo-invert {
+  filter: invert(1) brightness(1.2) contrast(1.1);
+}
+
+/* RenderVoid Glassmorphism System */
+.glass-panel {
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.75);
+}
+
+.glass-pill {
+  background: var(--card-inner-bg) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.85);
+}
+
+.glass-card {
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+}
+
+.glass-card:hover {
+  border-color: var(--primary-accent) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--primary-accent) !important;
+}
+
+/* Ambient Paper Texture Overlay */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--app-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--card-inner-bg);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-accent);
+}

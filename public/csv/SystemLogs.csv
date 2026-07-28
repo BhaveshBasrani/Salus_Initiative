@@ -1,0 +1,3 @@
+"ID","Timestamp","Level","Channel","Message"
+"LOG-5001","2026-07-28T12:00:00Z","INFO","SystemInitializer","Salus Sheets schema initialized successfully."
+"LOG-5002","2026-07-28T12:05:00Z","INFO","ApplicationController","Fellowship application submitted for Design Track."

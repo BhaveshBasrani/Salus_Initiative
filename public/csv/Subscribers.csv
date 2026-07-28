@@ -1,0 +1,4 @@
+"ID","Email","OptInDate","TargetGroup","Status"
+"SUB-101","student@example.com","2026-07-28T12:00:00Z","Student","Active"
+"SUB-102","parent@example.com","2026-07-27T09:30:00Z","Parent","Active"
+"SUB-103","educator@example.com","2026-07-26T15:20:00Z","Educator","Active"
