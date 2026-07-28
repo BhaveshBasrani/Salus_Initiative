@@ -89,12 +89,12 @@ export function DynamicIsland() {
               />
             </div>
             <span className="editorial-title text-base font-bold tracking-tight text-[var(--text-main)] group-hover:text-[var(--primary-accent)] transition-colors hidden sm:inline">
-              SALUS <span className="font-light opacity-70">INITIATIVE</span>
+              SALUS <span className="font-light opacity-85">INITIATIVE</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 bg-[var(--card-inner-bg)] px-3 py-1.5 rounded-full border border-white/5">
+          <nav className="hidden md:flex items-center gap-1 bg-[var(--card-inner-bg)] px-3 py-1.5 rounded-full border border-white/10">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -104,19 +104,19 @@ export function DynamicIsland() {
                   href={item.href}
                   className={`relative px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors ${
                     isActive
-                      ? 'text-[var(--active-pill-text)]'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                      ? 'text-[var(--active-pill-text)] font-bold'
+                      : 'text-[var(--text-main)]/80 hover:text-[var(--text-main)]'
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeNavPill"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                      className="absolute inset-0 bg-[var(--primary-accent)] rounded-full shadow-peach-glow -z-10"
+                      className="absolute inset-0 bg-[var(--primary-accent)] rounded-full shadow-peach-glow z-0"
                     />
                   )}
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{item.label}</span>
+                  <Icon className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10">{item.label}</span>
                 </Link>
               );
             })}
