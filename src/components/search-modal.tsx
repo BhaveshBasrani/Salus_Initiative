@@ -88,7 +88,7 @@ export function SearchModal({
                 results.map((item) => (
                   <Link
                     key={item.id}
-                    href={item.url}
+                    href={item.linkUrl}
                     onClick={onClose}
                     className="p-3.5 rounded-2xl bg-[var(--card-inner-bg)] hover:bg-[var(--primary-accent)]/10 border border-white/5 hover:border-[var(--primary-accent)]/30 flex items-center justify-between transition-all group block"
                   >
@@ -100,7 +100,7 @@ export function SearchModal({
                       <h4 className="text-xs font-bold text-[var(--text-main)] group-hover:text-[var(--primary-accent)] transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-1">{item.snippet}</p>
+                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-1">{item.excerpt}</p>
                     </div>
                     <ArrowRight className="w-4 h-4 text-[var(--primary-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Link>

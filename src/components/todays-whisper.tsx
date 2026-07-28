@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Share2, Quote, Check, BookOpen } from 'lucide-react';
-import { MOCK_WHISPERS, AppsScriptClient } from '@/lib/apps-script-client';
+import { MOCK_WHISPERS } from '@/lib/apps-script-client';
 import { WhisperQuote } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -13,11 +13,8 @@ export function TodaysWhisper() {
   const [isRotating, setIsRotating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    AppsScriptClient.getWhispers().then((data) => {
-      if (data && data.length > 0) setWhispers(data);
-    });
-  }, []);
+
+
 
   const activeWhisper = whispers[currentIndex] || MOCK_WHISPERS[0];
 
