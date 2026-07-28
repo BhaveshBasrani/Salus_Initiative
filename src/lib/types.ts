@@ -122,15 +122,26 @@ export interface Applicant {
   name?: string;
   email: string;
   phone?: string;
+  phoneNumber?: string;
   roleInterest?: string;
-  roleTrack?: 'Design' | 'Marketing';
+  roleTrack?: string;
   schoolOrOrg?: string;
+  schoolCollege?: string;
+  grade?: string;
+  instagramId?: string;
+  primarySkill?: string;
+  preferredWorkStyle?: string;
+  pastExperience?: string;
+  comfortSensitiveTopics?: string;
   motivationStatement?: string;
   statementOfIntent?: string;
+  whyThisTeam?: string;
   availabilityHours?: number;
   resumeDriveUrl?: string;
+  resumeUrl?: string;
   status: ApplicantStatus;
   notes?: string;
+  adminNotes?: string;
 }
 
 export interface Subscriber {
@@ -163,9 +174,13 @@ export interface AdminAnalytics {
 
 export interface ApiResponse<T = any> {
   success: boolean;
-  message: string;
+  message?: string;
   data?: T;
   error?: string;
-  timestamp: string;
+  timestamp?: string;
   applicationId?: string;
+  id?: string;
+  storyId?: string;
+  subscriberId?: string;
+  resumeUrl?: string;
 }
