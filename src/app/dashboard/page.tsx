@@ -89,7 +89,8 @@ export default function UserDashboardPage() {
   }, [userTheme, defaultTheme, user, recordTodayActivity]);
 
   const themeOptions: { name: UserThemePreference; color: string; desc: string }[] = [
-    { name: 'Warm Peach', color: '#FF7E67', desc: 'Warm peach glows & soft charcoal surfaces (Default)' },
+    { name: 'Black & Beige', color: '#F5C2A5', desc: 'Ultra-deep obsidian black canvas with warm peach-beige highlights (Default)' },
+    { name: 'Warm Peach', color: '#FF7E67', desc: 'Warm peach glows & soft charcoal surfaces' },
     { name: 'Dark Obsidian', color: '#00F0FF', desc: 'Deep obsidian black with electric cyan accents' },
     { name: 'RenderVoid Crimson', color: '#CE2029', desc: 'Luxurious dark magazine aesthetic with crimson accents' },
     { name: 'Midnight Slate', color: '#38BDF8', desc: 'Cool midnight slate tones with electric cyan highlights' },

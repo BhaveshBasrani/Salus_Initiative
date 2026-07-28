@@ -555,8 +555,9 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {[
+                    { name: 'Black & Beige', color: '#F5C2A5' },
                     { name: 'Warm Peach', color: '#FF7E67' },
                     { name: 'Dark Obsidian', color: '#00F0FF' },
                     { name: 'RenderVoid Crimson', color: '#CE2029' },

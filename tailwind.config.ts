@@ -42,7 +42,7 @@ const config: Config = {
       boxShadow: {
         editorial: "0 20px 50px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1)",
         island: "0 16px 40px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.12)",
-        "peach-glow": "0 8px 24px -4px rgba(255, 126, 103, 0.35)",
+        "peach-glow": "0 8px 24px -4px var(--glow-color, rgba(245, 194, 165, 0.35))",
       },
       transitionDuration: {
         DEFAULT: "150ms",

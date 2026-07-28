@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { WhisperQuote, AdminRole } from './types';
 
 export type DynamicIslandState = 'compact' | 'expanded-nav' | 'whisper' | 'search' | 'story-quick';
-export type UserThemePreference = 'Warm Peach' | 'Dark Obsidian' | 'RenderVoid Crimson' | 'Midnight Slate';
+export type UserThemePreference = 'Black & Beige' | 'Warm Peach' | 'Dark Obsidian' | 'RenderVoid Crimson' | 'Midnight Slate';
 
 export interface DynamicFellowshipRole {
   id: string;
@@ -60,7 +60,7 @@ interface AppState {
 
 export const applyThemeToDocument = (themeName: UserThemePreference) => {
   if (typeof document === 'undefined') return;
-  const formattedTheme = themeName.toLowerCase().replace(/\s+/g, '-');
+  const formattedTheme = themeName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   document.documentElement.setAttribute('data-user-theme', formattedTheme);
 };
 
@@ -68,8 +68,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       theme: 'dark',
-      userTheme: 'Warm Peach',
-      defaultTheme: 'Warm Peach',
+      userTheme: 'Black & Beige',
+      defaultTheme: 'Black & Beige',
       
       setUserTheme: (userTheme) => set({ userTheme }),
       setDefaultTheme: (defaultTheme) => set({ defaultTheme }),

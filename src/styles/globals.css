@@ -8,8 +8,22 @@
    THEME VARIABLE DEFINITIONS
    ========================================== */
 
-/* WARM PEACH THEME (DEFAULT) */
-html[data-user-theme="warm-peach"], html:not([data-user-theme]) {
+/* BLACK & BEIGE THEME (DEFAULT) */
+html[data-user-theme="black-beige"], html:not([data-user-theme]) {
+  --app-bg: #050506;
+  --card-bg: #101114;
+  --card-inner-bg: #1A1B1F;
+  --primary-accent: #F5C2A5;
+  --accent-hover: #FBE3D5;
+  --text-main: #FAF6F0;
+  --text-muted: #B5A89E;
+  --active-pill-text: #050506;
+  --button-text: #050506;
+  --glow-color: rgba(245, 194, 165, 0.35);
+}
+
+/* WARM PEACH THEME */
+html[data-user-theme="warm-peach"] {
   --app-bg: #0C0D0E;
   --card-bg: #141518;
   --card-inner-bg: #1C1E22;
