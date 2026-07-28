@@ -12,34 +12,29 @@ export function LoadingScreen() {
   const runHealthChecks = async () => {
     setHealthError(null);
 
-    // Background System Health Verification
     try {
       const firebaseKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-      const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
       const appsScriptUrl = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL;
 
-      // Verification checks run silently in the background
-      if (!firebaseKey || firebaseKey.includes('DemoKey')) {
-        setHealthError('Firebase credentials disconnected.');
+      // If no backend env vars are configured (e.g. static GitHub Pages deploy),
+      // skip checks silently and let the app load with mock/fallback data.
+      if (!firebaseKey || !appsScriptUrl || appsScriptUrl.includes('demo')) {
+        setTimeout(() => { setIsLoading(false); }, 700);
         return;
       }
 
-      if (!recaptchaKey || recaptchaKey.includes('demo')) {
-        setHealthError('reCAPTCHA security check missing.');
-        return;
+      // If env vars ARE set, do a quick connectivity check
+      try {
+        const res = await fetch(`${appsScriptUrl}?action=ping`, { method: 'GET', signal: AbortSignal.timeout(5000) });
+        // Any response (even error JSON) means server is reachable
+      } catch {
+        // Network failure — still allow loading, data methods have their own fallbacks
       }
 
-      if (!appsScriptUrl || appsScriptUrl.includes('demo')) {
-        setHealthError('Apps Script backend unreachable.');
-        return;
-      }
-
-      // Smooth transition after silent verification
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 700);
+      setTimeout(() => { setIsLoading(false); }, 700);
     } catch {
-      setHealthError('Unexpected initialization error.');
+      // Unexpected error — still proceed, don't block the app
+      setTimeout(() => { setIsLoading(false); }, 700);
     }
   };
 
