@@ -36,7 +36,7 @@ export interface WhisperQuote {
   id: string;
   quote: string;
   author: string;
-  category: 'Self-Compassion' | 'Resilience' | 'Hope' | 'Connection' | 'Mindful Breath';
+  category: 'Self-Compassion' | 'Resilience' | 'Hope' | 'Connection' | 'Mindful Breath' | 'Academic Peace' | 'Parent Guidance';
   targetAudience?: 'Student' | 'Parent' | 'Volunteer' | 'General';
 }
 
