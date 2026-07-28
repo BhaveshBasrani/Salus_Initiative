@@ -57,8 +57,8 @@ export interface FAQItem {
   id: string;
   question: string;
   answer: string;
-  audienceCategory: 'General' | 'Students' | 'Volunteers' | 'Parents & Schools';
-  orderIndex: number;
+  audienceCategory: 'General' | 'Students' | 'Volunteers' | 'Parents & Schools' | string;
+  orderIndex?: number;
 }
 
 export interface Announcement {

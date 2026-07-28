@@ -49,30 +49,36 @@ export interface ApiResponse {
   timestamp?: string;
 }
 
-export const MOCK_FAQS = [
+import { FAQItem } from './types';
+
+export const MOCK_FAQS: FAQItem[] = [
   {
     id: 'faq-1',
     question: 'Is Salus Initiative a clinical therapy service?',
     answer: 'No. Salus Initiative is a non-clinical, peer-led emotional sanctuary and educational movement. We provide grounding toolkits, anonymous story sharing, and peer advocacy circles. If you are experiencing an immediate mental health emergency, please consult our crisis helpline directory.',
     audienceCategory: 'Students',
+    orderIndex: 1,
   },
   {
     id: 'faq-2',
     question: 'How are shared peer stories moderated for safety?',
     answer: 'All submitted narratives undergo a 2-step review by trained student moderators and adult mentors to ensure they contain no triggering descriptions or unsafe content before being published.',
     audienceCategory: 'Students',
+    orderIndex: 2,
   },
   {
     id: 'faq-3',
     question: 'Can parents participate in Salus events and workshops?',
     answer: 'Yes! We offer dedicated parent guidance Playbooks, monthly reflection zines, and joint school-community wellness forums designed to bridge student-parent communication.',
-    audienceCategory: 'Parents',
+    audienceCategory: 'Parents & Schools',
+    orderIndex: 3,
   },
   {
     id: 'faq-4',
     question: 'How can a high school or college charter a Salus Chapter?',
     answer: 'Schools can apply through our Volunteer & Fellowship portal. Approved chapters receive starter funding, executive board toolkits, and leadership coaching.',
-    audienceCategory: 'Schools',
+    audienceCategory: 'Parents & Schools',
+    orderIndex: 4,
   },
 ];
 
