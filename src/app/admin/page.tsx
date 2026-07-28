@@ -420,11 +420,11 @@ export default function AdminPage() {
                                 onChange={(e) => handleUpdateApplicantStatus(app.id, e.target.value as ApplicantStatus)}
                                 className="px-3 py-1.5 rounded-xl bg-[var(--card-inner-bg)] text-xs font-semibold text-[var(--primary-accent)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none cursor-pointer"
                               >
-                                <option value="Submitted">Status: Submitted</option>
-                                <option value="Under Review">Status: Under Review</option>
-                                <option value="Interview Scheduled">Status: Interview Scheduled</option>
-                                <option value="Accepted">Status: Accepted</option>
-                                <option value="Declined">Status: Declined</option>
+                                <option value="Submitted" className="bg-[var(--card-bg)] text-[var(--text-main)]">Status: Submitted</option>
+                                <option value="Under Review" className="bg-[var(--card-bg)] text-[var(--text-main)]">Status: Under Review</option>
+                                <option value="Interview Scheduled" className="bg-[var(--card-bg)] text-[var(--text-main)]">Status: Interview Scheduled</option>
+                                <option value="Accepted" className="bg-[var(--card-bg)] text-[var(--text-main)]">Status: Accepted</option>
+                                <option value="Declined" className="bg-[var(--card-bg)] text-[var(--text-main)]">Status: Declined</option>
                               </select>
 
                               <button

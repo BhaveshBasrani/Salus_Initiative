@@ -51,7 +51,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
                 onClick={() => setStoryModalOpen(true)}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[var(--primary-accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-2.5 shadow-peach-glow active:scale-95 transition-all duration-150"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[var(--primary-accent)] hover:bg-[var(--accent-hover)] text-[var(--button-text)] font-semibold text-xs flex items-center justify-center gap-2.5 shadow-peach-glow active:scale-95 transition-all duration-150"
               >
                 <PenSquare className="w-4 h-4" />
                 Share Your Story

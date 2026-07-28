@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark scroll-smooth">
-      <body className="min-h-screen flex flex-col bg-[#0C0D0E] text-[#F8F7F4] antialiased selection:bg-[#FF7E67] selection:text-white">
+      <body className="min-h-screen flex flex-col bg-[var(--app-bg)] text-[var(--text-main)] antialiased selection:bg-[var(--primary-accent)] selection:text-[var(--button-text)]">
         <ThemeInitializer />
         <LoadingScreen />
         <GrainOverlay />

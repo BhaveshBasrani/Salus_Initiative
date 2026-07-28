@@ -100,6 +100,12 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Native Select Option Dropdown Contrast Fix */
+select option {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+}
+
 /* Fast, Snappy Button & Link Transitions */
 button, a {
   transition: background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
