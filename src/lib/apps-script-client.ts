@@ -100,53 +100,7 @@ export const MOCK_WHISPERS: WhisperQuote[] = [
   },
 ];
 
-export const MOCK_STORIES: Story[] = [
-  {
-    id: 'st-101',
-    title: "Learning to Breathe Through the Noise of Senior Year",
-    category: "Student Voice",
-    authorName: "Aarav Sharma",
-    authorRole: "Student Fellow",
-    isAnonymous: false,
-    content: `Senior year felt like standing under a waterfall of deadlines, college entrance exams, and parental expectations. I was constantly holding my breath. 
-    
-Joining Salus peer support circles taught me that asking for a moment to rest isn't failure—it's preservation. Now, before every study session, I take three deep 4-7-8 breaths.`,
-    excerpt: "How a high school senior rediscovered peace through micro-pauses and mindful peer support.",
-    date: "2026-07-20",
-    readTime: "3 min read",
-    likes: 142,
-  },
-  {
-    id: 'st-102',
-    title: "Bridging the Silent Divide: A Father's Reflection on Youth Anxiety",
-    category: "Parenting & Youth",
-    authorName: "Rajesh Patel",
-    authorRole: "Parent & Educator",
-    isAnonymous: false,
-    content: `When my son started retreating into his room after school, my instinct was to push for answers. But questioning only built higher walls. 
-
-Salus taught me to listen without immediately offering solutions. Simply acknowledging his feelings without judgement changed everything. Now, our evening walks are places of quiet honesty.`,
-    excerpt: "A father shares his journey from attempting to fix his son's anxiety to holding supportive space.",
-    date: "2026-07-15",
-    readTime: "4 min read",
-    likes: 98,
-  },
-  {
-    id: 'st-103',
-    title: "The Weight We Don't See: Overcoming Academic Imposter Syndrome",
-    category: "Student Voice",
-    authorName: "Anonymous Student",
-    authorRole: "11th Grade Fellow",
-    isAnonymous: true,
-    content: `Every time I received a high score, I felt like a fraud waiting to be exposed. I thought everyone else had a secret manual for confidence. 
-
-Opening up anonymously through the Salus Story Box allowed me to see that almost all my classmates shared the exact same fear. We weren't weak; we were just human.`,
-    excerpt: "An anonymous 11th grader breaks down the illusion of perfection and academic isolation.",
-    date: "2026-07-10",
-    readTime: "3 min read",
-    likes: 215,
-  },
-];
+export const MOCK_STORIES: Story[] = [];
 
 export const MOCK_APPLICANTS: Applicant[] = [
   {

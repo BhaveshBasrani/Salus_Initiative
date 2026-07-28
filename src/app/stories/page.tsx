@@ -15,7 +15,7 @@ export default function StoriesPage() {
   const { setStoryModalOpen } = useAppStore();
   const { user, bookmarkedStoryIds, toggleBookmarkStory } = useAuthStore();
   
-  const [stories, setStories] = useState<Story[]>(MOCK_STORIES);
+  const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
@@ -24,13 +24,13 @@ export default function StoriesPage() {
     setIsLoading(true);
     AppsScriptClient.getStories()
       .then((data) => {
-        if (data && data.length > 0) setStories(data);
+        setStories(data || []);
       })
       .catch(() => {
-        // Mock fallback preserved
+        setStories([]);
       })
       .finally(() => {
-        setTimeout(() => setIsLoading(false), 300);
+        setTimeout(() => setIsLoading(false), 200);
       });
   }, []);
 

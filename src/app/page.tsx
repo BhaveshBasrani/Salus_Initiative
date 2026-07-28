@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -15,11 +15,18 @@ import {
   LogIn,
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-import { MOCK_STORIES } from '@/lib/apps-script-client';
+import { AppsScriptClient } from '@/lib/apps-script-client';
+import { Story } from '@/lib/types';
 
 export default function HomePage() {
   const { setStoryModalOpen } = useAppStore();
-  const featuredStories = MOCK_STORIES.filter((s) => s.isFeatured || s.status === 'Approved').slice(0, 3);
+  const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+
+  useEffect(() => {
+    AppsScriptClient.getStories().then((data) => {
+      setFeaturedStories((data || []).slice(0, 3));
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-main)] select-none overflow-x-hidden transition-colors duration-300">
