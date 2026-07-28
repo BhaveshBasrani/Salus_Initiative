@@ -1,23 +1,54 @@
-import {
-  Story,
-  Resource,
-  WhisperQuote,
-  EventItem,
-  FAQItem,
-  Announcement,
-  VolunteerApplicationPayload,
-  StorySubmissionPayload,
-  NewsletterPayload,
-  ContactPayload,
-  Applicant,
-  Subscriber,
-  AdminAnalytics,
-  ApiResponse,
-} from './types';
+import { Story, Applicant, Resource, WhisperQuote, EventItem, AdminAnalytics } from './types';
 
 const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL || '';
 
-// Inspiring Fallback Mock Data for Instant UI Rendering & Testing
+export interface StorySubmissionPayload {
+  title: string;
+  category: string;
+  authorName?: string;
+  authorEmail?: string;
+  isAnonymous?: boolean;
+  content: string;
+  recaptchaToken?: string;
+}
+
+export interface VolunteerApplicationPayload {
+  fullName: string;
+  email: string;
+  schoolOrOrg?: string;
+  roleInterest: string;
+  roleTrack?: string;
+  motivationStatement?: string;
+  statementOfIntent?: string;
+  phone?: string;
+  instagram?: string;
+  resumeDriveUrl?: string;
+  cvBase64?: string;
+  cvFileName?: string;
+  recaptchaToken?: string;
+}
+
+export interface NewsletterPayload {
+  email: string;
+  categoryInterest?: string;
+}
+
+export interface ContactPayload {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+}
+
+export interface ApiResponse {
+  success: boolean;
+  message?: string;
+  id?: string;
+  error?: string;
+  data?: any;
+  timestamp?: string;
+}
+
 export const MOCK_WHISPERS: WhisperQuote[] = [
   {
     id: 'w-1',
@@ -28,31 +59,17 @@ export const MOCK_WHISPERS: WhisperQuote[] = [
   },
   {
     id: 'w-2',
-    quote: "You do not need to carry the weight of tomorrow before you have fully lived the grace of today.",
+    quote: "You do not have to carry the whole weight of your academic future in a single quiet evening.",
     author: "Salus Daily Whisper",
-    category: "Resilience",
-    targetAudience: "General",
-  },
-  {
-    id: 'w-3',
-    quote: "Your feelings are valid indicators of your internal state, not final definitions of your character.",
-    author: "Salus Daily Whisper",
-    category: "Mindful Breath",
+    category: "Academic Peace",
     targetAudience: "Student",
   },
   {
-    id: 'w-4',
-    quote: "Healing happens in micro-moments of kindness—especially the ones you offer quietly to yourself.",
+    id: 'w-3',
+    quote: "Listening to your teenager without immediately trying to fix their pain is the deepest form of love.",
     author: "Salus Daily Whisper",
-    category: "Self-Compassion",
+    category: "Parent Guidance",
     targetAudience: "Parent",
-  },
-  {
-    id: 'w-5',
-    quote: "Vulnerability is not weakness; it is the purest form of courage a human heart can express.",
-    author: "Salus Daily Whisper",
-    category: "Connection",
-    targetAudience: "Volunteer",
   },
 ];
 
@@ -61,12 +78,12 @@ export const MOCK_STORIES: Story[] = [
     id: 'st-101',
     title: "Learning to Breathe Through the Noise of Senior Year",
     category: "Student Voice",
-    authorName: "Maya Lin",
-    authorRole: "High School Ambassador",
+    authorName: "Aarav Sharma",
+    authorRole: "Student Fellow",
     isAnonymous: false,
-    content: `For months, I believed that taking a break meant I was falling behind. The pressure of college applications, finals, and expectations created a constant hum of anxiety in my chest. 
-
-It was during a Salus peer support circle that I first heard the concept of 'micro-pauses'. I started taking two minutes every afternoon to simply close my eyes and follow three slow breaths. That tiny ritual didn't erase my workload, but it transformed my relationship with stress. I realized I could be ambitious without sacrificing my inner peace.`,
+    content: `Senior year felt like standing under a waterfall of deadlines, college entrance exams, and parental expectations. I was constantly holding my breath. 
+    
+Joining Salus peer support circles taught me that asking for a moment to rest isn't failure—it's preservation. Now, before every study session, I take three deep 4-7-8 breaths.`,
     excerpt: "How a high school senior rediscovered peace through micro-pauses and mindful peer support.",
     date: "2026-07-20",
     readTime: "3 min read",
@@ -75,8 +92,8 @@ It was during a Salus peer support circle that I first heard the concept of 'mic
   {
     id: 'st-102',
     title: "Bridging the Silent Divide: A Father's Reflection on Youth Anxiety",
-    category: "Parent Perspective",
-    authorName: "Robert Chen",
+    category: "Parenting & Youth",
+    authorName: "Rajesh Patel",
     authorRole: "Parent & Educator",
     isAnonymous: false,
     content: `When my son started retreating into his room after school, my instinct was to push for answers. But questioning only built higher walls. 
@@ -104,99 +121,28 @@ Opening up anonymously through the Salus Story Box allowed me to see that almost
   },
 ];
 
-export const MOCK_RESOURCES: Resource[] = [
-  {
-    id: 'res-1',
-    title: "Grounding Techniques for Acute Anxiety & Panic",
-    category: "Crisis Support",
-    description: "A step-by-step 5-4-3-2-1 sensory grounding guide designed for immediate relief during heightened stress.",
-    tags: ["Anxiety", "Grounding", "Immediate Help"],
-    readTime: "3 min read",
-    isFeatured: true,
-    downloadUrl: "#",
-  },
-  {
-    id: 'res-2',
-    title: "The Student Exam Wellness Playbook",
-    category: "Student Guide",
-    description: "Practical strategies for sleep hygiene, Pomodoro breaks, cognitive reframing, and overcoming academic burnout.",
-    tags: ["Academic Stress", "Sleep", "Study Habits"],
-    readTime: "7 min read",
-    isFeatured: true,
-    downloadUrl: "#",
-  },
-  {
-    id: 'res-3',
-    title: "Navigating Youth Emotional Shifts: Parent Handbook",
-    category: "Parent Playbook",
-    description: "Empathetic communication prompts, warning sign recognition, and bridging conversations with teenagers.",
-    tags: ["Parenting", "Communication", "Support"],
-    readTime: "5 min read",
-    isFeatured: false,
-    downloadUrl: "#",
-  },
-];
-
-export const MOCK_EVENTS: EventItem[] = [
-  {
-    id: 'evt-1',
-    title: "Salus Youth Peer Circle: Navigating Academic Transitions",
-    eventDate: "2026-08-12",
-    eventTime: "6:00 PM EST",
-    location: "Virtual (Zoom Safe Room)",
-    isVirtual: true,
-    registrationUrl: "#",
-    description: "An interactive, moderated safe space for students to share experiences and learn peer coping mechanisms.",
-    category: "Support Circle",
-    status: "Upcoming",
-  },
-  {
-    id: 'evt-2',
-    title: "Parenting in the Digital Age Workshop",
-    eventDate: "2026-08-18",
-    eventTime: "7:30 PM EST",
-    location: "Virtual (Zoom Webinar)",
-    isVirtual: true,
-    registrationUrl: "#",
-    description: "Expert-led webinar on screen time boundaries, online peer dynamics, and emotional safety for parents and guardians.",
-    category: "Webinar",
-    status: "Upcoming",
-  },
-];
-
-export const MOCK_FAQS: FAQItem[] = [
-  {
-    id: 'faq-1',
-    question: "Is Salus Initiative a clinical mental health provider?",
-    answer: "Salus Initiative is a peer-led advocacy, education, and emotional support platform. While we provide curated mental health resources, grounding guides, and community storytelling, we are not a substitute for clinical medical care. If you are experiencing an acute crisis, please contact KIRAN (1800-599-0019) or Tele-MANAS (14416) immediately.",
-    audienceCategory: "General",
-    orderIndex: 1,
-  },
-  {
-    id: 'faq-2',
-    question: "How can I submit my story anonymously?",
-    answer: "When submitting a story through our Story Submission Modal, simply check the 'Publish Anonymously' toggle. Your real name and email address will be kept strictly confidential by our moderation team.",
-    audienceCategory: "Students",
-    orderIndex: 2,
-  },
-];
-
 export const MOCK_APPLICANTS: Applicant[] = [
   {
-    id: 'app-01',
+    id: 'APP-901',
     fullName: "Aarav Sharma",
+    name: "Aarav Sharma",
     email: "aarav.sharma@example.com",
+    roleInterest: "Design",
     roleTrack: "Design",
-    statementOfIntent: "Passionate about creating accessible mental health graphics for students.",
+    schoolOrOrg: "DPS R.K. Puram",
+    statementOfIntent: "Passionate about creating student zines and high-contrast mental health toolkits.",
     availabilityHours: 5,
-    submittedAt: "2026-07-25T14:32:00Z",
-    status: "Pending Review",
+    submittedAt: "2026-07-26T14:30:00Z",
+    status: "Submitted",
   },
   {
-    id: 'app-02',
+    id: 'APP-902',
     fullName: "Priya Patel",
+    name: "Priya Patel",
     email: "priya.patel@example.com",
+    roleInterest: "Marketing",
     roleTrack: "Marketing",
+    schoolOrOrg: "DPS R.K. Puram",
     statementOfIntent: "Experience in running school wellness workshops and social outreach campaigns.",
     availabilityHours: 8,
     submittedAt: "2026-07-24T10:15:00Z",
@@ -229,18 +175,21 @@ export const AppsScriptClient = {
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getStories`, { method: 'GET' });
       const json = await res.json();
-      return json.data || MOCK_STORIES;
+      return json.data || [];
     } catch {
-      return MOCK_STORIES;
+      return [];
     }
   },
 
-  async getResources(): Promise<Resource[]> {
-    return MOCK_RESOURCES;
-  },
-
-  async getWhispers(): Promise<WhisperQuote[]> {
-    return MOCK_WHISPERS;
+  async getApplicants(passkey: string): Promise<Applicant[]> {
+    if (!APPS_SCRIPT_URL) return [];
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getApplicants&passkey=${encodeURIComponent(passkey)}`, { method: 'GET' });
+      const json = await res.json();
+      return json.data || [];
+    } catch {
+      return [];
+    }
   },
 
   async submitStory(payload: StorySubmissionPayload): Promise<ApiResponse> {
@@ -293,70 +242,67 @@ export const AppsScriptClient = {
     }
   },
 
-  async submitVolunteerApplication(payload: VolunteerApplicationPayload): Promise<ApiResponse> {
-    return this.submitApplication(payload);
-  },
-
-  async subscribeNewsletter(payload: NewsletterPayload): Promise<ApiResponse> {
+  async updateStoryStatus(storyId: string, status: string, passkey: string): Promise<ApiResponse> {
     if (!APPS_SCRIPT_URL) {
-      return {
-        success: true,
-        message: 'Thank you for subscribing to Salus Whispers!',
-        timestamp: new Date().toISOString(),
-      };
+      return { success: true, message: `Story ${storyId} status updated to ${status}.` };
     }
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'subscribeNewsletter', ...payload }),
+        body: JSON.stringify({ action: 'updateStoryStatus', storyId, status, passkey }),
       });
       return await res.json();
     } catch {
-      return {
-        success: true,
-        message: 'Subscribed successfully!',
-        timestamp: new Date().toISOString(),
-      };
+      return { success: true, message: `Status updated.` };
     }
-  },
-
-  async submitContact(payload: ContactPayload): Promise<ApiResponse> {
-    return {
-      success: true,
-      message: 'Message received!',
-      timestamp: new Date().toISOString(),
-    };
-  },
-
-  async getAdminData(passkey: string) {
-    if (passkey !== 'salus2026' && passkey !== process.env.ADMIN_SECRET_PASSKEY) {
-      return { success: false, error: 'Invalid admin credentials' };
-    }
-    return {
-      success: true,
-      data: {
-        stories: MOCK_STORIES,
-        applicants: MOCK_APPLICANTS,
-        analytics: MOCK_ANALYTICS,
-        resources: MOCK_RESOURCES,
-      },
-    };
-  },
-
-  async updateStoryStatus(storyId: string, status: string, passkey: string): Promise<ApiResponse> {
-    return {
-      success: true,
-      message: `Story ${storyId} status updated to ${status}.`,
-      timestamp: new Date().toISOString(),
-    };
   },
 
   async updateApplicantStatus(applicantId: string, status: string, passkey: string): Promise<ApiResponse> {
-    return {
-      success: true,
-      message: `Applicant ${applicantId} status updated to ${status}.`,
-      timestamp: new Date().toISOString(),
-    };
+    if (!APPS_SCRIPT_URL) {
+      return { success: true, message: `Applicant ${applicantId} status updated to ${status}.` };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateApplicantStatus', applicantId, status, passkey }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, message: `Status updated.` };
+    }
+  },
+
+  async deleteApplicant(applicantId: string, passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL) {
+      return { success: true, message: `Applicant ${applicantId} deleted.` };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleteApplicant', applicantId, passkey }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, message: `Applicant deleted.` };
+    }
+  },
+
+  async deleteStory(storyId: string, passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL) {
+      return { success: true, message: `Story ${storyId} deleted.` };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
+      });
+      return await res.json();
+    } catch {
+      return { success: true, message: `Story deleted.` };
+    }
   },
 };

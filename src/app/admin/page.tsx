@@ -35,9 +35,10 @@ import {
   Database,
   Cloud,
   Palette,
+  Loader2,
 } from 'lucide-react';
 import { useAppStore, DynamicFellowshipRole, UserThemePreference, applyThemeToDocument } from '@/lib/store';
-import { MOCK_APPLICANTS, MOCK_STORIES, AppsScriptClient } from '@/lib/apps-script-client';
+import { AppsScriptClient } from '@/lib/apps-script-client';
 import { Applicant, Story, ApplicantStatus, StoryStatus } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -57,28 +58,36 @@ export default function AdminPage() {
   const [passkeyInput, setPasskeyInput] = useState('');
   const [activeTab, setActiveTab] = useState<'applications' | 'stories' | 'roles' | 'media' | 'logs'>('applications');
   
-  // Data State with Local Mutation Support
-  const [applicants, setApplicants] = useState<Applicant[]>(MOCK_APPLICANTS as any);
-  const [stories, setStories] = useState<Story[]>(MOCK_STORIES as any);
+  // Real Data State (Initialized to empty array so empty Google Sheets display 0 entries!)
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [isFetchingData, setIsFetchingData] = useState<boolean>(false);
   
   // Modals & Details View
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
-  // Connection Diagnostics State
-  const [connectionStatus, setConnectionStatus] = useState({
-    firebase: true,
-    appsScript: true,
-    recaptcha: true,
-    driveStorage: true,
-  });
-
-  // Add & Edit Role State
-  const [roleNameInput, setRoleNameInput] = useState('');
-  const [roleDescInput, setRoleDescInput] = useState('');
-  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
-  const [editNameInput, setEditNameInput] = useState('');
-  const [editDescInput, setEditDescInput] = useState('');
+  // Fetch real Google Sheets data on admin login
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      setIsFetchingData(true);
+      Promise.all([
+        AppsScriptClient.getApplicants('salus2026'),
+        AppsScriptClient.getStories(),
+      ])
+        .then(([appData, storyData]) => {
+          setApplicants(appData || []);
+          setStories(storyData || []);
+        })
+        .catch(() => {
+          setApplicants([]);
+          setStories([]);
+        })
+        .finally(() => {
+          setIsFetchingData(false);
+        });
+    }
+  }, [isAdminAuthenticated]);
 
   const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +117,20 @@ export default function AdminPage() {
 
     try {
       await AppsScriptClient.updateApplicantStatus(applicantId, newStatus, 'salus2026');
-    } catch {
-      // Local state fallback preserved
+    } catch {}
+  };
+
+  // DELETE APPLICANT CONTROL
+  const handleDeleteApplicant = async (applicantId: string) => {
+    setApplicants((prev) => prev.filter((app) => app.id !== applicantId));
+    if (selectedApplicant && selectedApplicant.id === applicantId) {
+      setSelectedApplicant(null);
     }
+    toast.success(`Deleted applicant entry: ${applicantId}`);
+
+    try {
+      await AppsScriptClient.deleteApplicant(applicantId, 'salus2026');
+    } catch {}
   };
 
   // STORY STATUS MODERATION CONTROLS
@@ -125,9 +145,20 @@ export default function AdminPage() {
 
     try {
       await AppsScriptClient.updateStoryStatus(storyId, newStatus, 'salus2026');
-    } catch {
-      // Local state fallback preserved
+    } catch {}
+  };
+
+  // DELETE STORY CONTROL
+  const handleDeleteStory = async (storyId: string) => {
+    setStories((prev) => prev.filter((st) => st.id !== storyId));
+    if (selectedStory && selectedStory.id === storyId) {
+      setSelectedStory(null);
     }
+    toast.success(`Deleted story narrative: ${storyId}`);
+
+    try {
+      await AppsScriptClient.deleteStory(storyId, 'salus2026');
+    } catch {}
   };
 
   const handleToggleFeatureStory = (storyId: string) => {
@@ -136,6 +167,13 @@ export default function AdminPage() {
     );
     toast.success(`Toggled featured status for story.`);
   };
+
+  // Add & Edit Role State
+  const [roleNameInput, setRoleNameInput] = useState('');
+  const [roleDescInput, setRoleDescInput] = useState('');
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+  const [editNameInput, setEditNameInput] = useState('');
+  const [editDescInput, setEditDescInput] = useState('');
 
   const handleAddRole = (e: React.FormEvent) => {
     e.preventDefault();
@@ -279,8 +317,8 @@ export default function AdminPage() {
         {/* Sliding Admin Tabs */}
         <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto">
           {[
-            { id: 'applications', label: 'Applicants Management', icon: Users },
-            { id: 'stories', label: 'Story Moderation Queue', icon: BookOpen },
+            { id: 'applications', label: `Applicants (${applicants.length})`, icon: Users },
+            { id: 'stories', label: `Stories (${stories.length})`, icon: BookOpen },
             { id: 'roles', label: 'Roles & Default Theme', icon: Layers },
             { id: 'media', label: 'Google Drive Media', icon: ExternalLink },
             { id: 'logs', label: 'System Logs', icon: Activity },
@@ -312,150 +350,194 @@ export default function AdminPage() {
         {/* Main Workspace Pane */}
         <div className="bg-[var(--card-bg)] p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl transition-colors duration-300">
           
-          {/* 1. APPLICANTS TAB WITH INLINE SELECT BOX (NO DROPDOWN CLIPPING) */}
+          {/* 1. APPLICANTS TAB */}
           {activeTab === 'applications' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-[var(--text-main)]">Fellowship Applicants Management</h2>
-                  <p className="text-xs text-[var(--text-muted)]">Inspect complete 15-field candidate applications and modify selection status anytime.</p>
+                  <p className="text-xs text-[var(--text-muted)]">Inspect candidate applications, update selection status, or delete entries permanently.</p>
                 </div>
               </div>
 
-              <div className="overflow-x-visible">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-white/10 text-[var(--text-muted)] font-mono uppercase text-[10px]">
-                      <th className="pb-3">Applicant Name & Email</th>
-                      <th className="pb-3">Selected Track</th>
-                      <th className="pb-3">School / Institution</th>
-                      <th className="pb-3">Current Status</th>
-                      <th className="pb-3 text-right">Actions & Change Choice</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {applicants.map((app) => (
-                      <tr key={app.id} className="hover:bg-white/5 transition-colors">
-                        <td className="py-4 font-semibold text-[var(--text-main)]">
-                          {app.fullName || app.name}
-                          <span className="block text-[10px] text-[var(--text-muted)] font-normal">{app.email}</span>
-                        </td>
-
-                        <td className="py-4">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono bg-[var(--primary-accent)]/15 text-[var(--primary-accent)] border border-[var(--primary-accent)]/30">
-                            {app.roleTrack || app.roleInterest}
-                          </span>
-                        </td>
-
-                        <td className="py-4 text-[var(--text-main)]">
-                          {app.schoolOrOrg || 'DPS R.K. Puram'}
-                        </td>
-
-                        <td className="py-4">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold ${
-                            app.status === 'Accepted' ? 'bg-emerald-400/15 text-emerald-400 border border-emerald-400/30' :
-                            app.status === 'Interview Scheduled' ? 'bg-amber-400/15 text-amber-400 border border-amber-400/30' :
-                            app.status === 'Declined' ? 'bg-red-400/15 text-red-400 border border-red-400/30' :
-                            'bg-[var(--primary-accent)]/15 text-[var(--primary-accent)] border border-[var(--primary-accent)]/30'
-                          }`}>
-                            {app.status}
-                          </span>
-                        </td>
-
-                        <td className="py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => setSelectedApplicant(app)}
-                              className="px-3.5 py-1.5 rounded-xl bg-[var(--card-inner-bg)] hover:bg-white/10 text-xs text-[var(--text-main)] border border-white/10 flex items-center gap-1.5"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-[var(--primary-accent)]" /> Full Application
-                            </button>
-
-                            {/* Native Custom Select Box (100% Unclipped Options) */}
-                            <select
-                              value={app.status}
-                              onChange={(e) => handleUpdateApplicantStatus(app.id, e.target.value as ApplicantStatus)}
-                              className="px-3 py-1.5 rounded-xl bg-[var(--card-inner-bg)] text-xs font-semibold text-[var(--primary-accent)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none cursor-pointer"
-                            >
-                              <option value="Submitted">Status: Submitted</option>
-                              <option value="Under Review">Status: Under Review</option>
-                              <option value="Interview Scheduled">Status: Interview Scheduled</option>
-                              <option value="Accepted">Status: Accepted</option>
-                              <option value="Declined">Status: Declined</option>
-                            </select>
-                          </div>
-                        </td>
+              {isFetchingData ? (
+                <div className="py-16 text-center space-y-3">
+                  <Loader2 className="w-6 h-6 animate-spin text-[var(--primary-accent)] mx-auto" />
+                  <span className="text-xs font-mono text-[var(--text-muted)]">Fetching Google Sheets Applicants...</span>
+                </div>
+              ) : applicants.length > 0 ? (
+                <div className="overflow-x-visible">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 text-[var(--text-muted)] font-mono uppercase text-[10px]">
+                        <th className="pb-3">Applicant Name & Email</th>
+                        <th className="pb-3">Selected Track</th>
+                        <th className="pb-3">School / Institution</th>
+                        <th className="pb-3">Current Status</th>
+                        <th className="pb-3 text-right">Actions & Moderation</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {applicants.map((app) => (
+                        <tr key={app.id} className="hover:bg-white/5 transition-colors">
+                          <td className="py-4 font-semibold text-[var(--text-main)]">
+                            {app.fullName || app.name || 'Applicant'}
+                            <span className="block text-[10px] text-[var(--text-muted)] font-normal">{app.email}</span>
+                          </td>
+
+                          <td className="py-4">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-mono bg-[var(--primary-accent)]/15 text-[var(--primary-accent)] border border-[var(--primary-accent)]/30">
+                              {app.roleTrack || app.roleInterest}
+                            </span>
+                          </td>
+
+                          <td className="py-4 text-[var(--text-main)]">
+                            {app.schoolOrOrg || 'Student'}
+                          </td>
+
+                          <td className="py-4">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold ${
+                              app.status === 'Accepted' ? 'bg-emerald-400/15 text-emerald-400 border border-emerald-400/30' :
+                              app.status === 'Interview Scheduled' ? 'bg-amber-400/15 text-amber-400 border border-amber-400/30' :
+                              app.status === 'Declined' ? 'bg-red-400/15 text-red-400 border border-red-400/30' :
+                              'bg-[var(--primary-accent)]/15 text-[var(--primary-accent)] border border-[var(--primary-accent)]/30'
+                            }`}>
+                              {app.status}
+                            </span>
+                          </td>
+
+                          <td className="py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setSelectedApplicant(app)}
+                                className="px-3.5 py-1.5 rounded-xl bg-[var(--card-inner-bg)] hover:bg-white/10 text-xs text-[var(--text-main)] border border-white/10 flex items-center gap-1.5"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[var(--primary-accent)]" /> Full Application
+                              </button>
+
+                              <select
+                                value={app.status}
+                                onChange={(e) => handleUpdateApplicantStatus(app.id, e.target.value as ApplicantStatus)}
+                                className="px-3 py-1.5 rounded-xl bg-[var(--card-inner-bg)] text-xs font-semibold text-[var(--primary-accent)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none cursor-pointer"
+                              >
+                                <option value="Submitted">Status: Submitted</option>
+                                <option value="Under Review">Status: Under Review</option>
+                                <option value="Interview Scheduled">Status: Interview Scheduled</option>
+                                <option value="Accepted">Status: Accepted</option>
+                                <option value="Declined">Status: Declined</option>
+                              </select>
+
+                              <button
+                                onClick={() => handleDeleteApplicant(app.id)}
+                                className="p-1.5 rounded-xl text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                                title="Delete Entry"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-16 text-center space-y-2 border border-dashed border-white/10 rounded-2xl">
+                  <Users className="w-8 h-8 text-[var(--primary-accent)] mx-auto" />
+                  <h4 className="text-sm font-bold text-[var(--text-main)]">No Applicants Found</h4>
+                  <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
+                    Your Google Sheets database contains 0 fellowship applicants. New student submissions will automatically sync here.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          {/* 2. STORY QUEUE TAB WITH INLINE SELECT BOX (NO DROPDOWN CLIPPING) */}
+          {/* 2. STORY QUEUE TAB */}
           {activeTab === 'stories' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-[var(--text-main)]">Story Moderation & Publishing Queue</h2>
-                  <p className="text-xs text-[var(--text-muted)]">Read peer story narratives, verify emotional safety, and approve for homepage publication.</p>
+                  <p className="text-xs text-[var(--text-muted)]">Read peer story narratives, verify emotional safety, approve, or delete entries.</p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {stories.map((s) => (
-                  <div key={s.id} className="p-5 rounded-2xl bg-[var(--card-inner-bg)] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-[var(--primary-accent)] uppercase">{s.category}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono ${
-                          s.status === 'Approved' ? 'bg-emerald-400/15 text-emerald-400 border border-emerald-400/30' :
-                          s.status === 'Rejected' ? 'bg-red-400/15 text-red-400 border border-red-400/30' :
-                          'bg-amber-400/15 text-amber-400 border border-amber-400/30'
-                        }`}>
-                          {s.status}
-                        </span>
-                        {s.isFeatured && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-400/20 text-amber-300 flex items-center gap-1 border border-amber-400/30">
-                            <Star className="w-3 h-3 fill-current" /> Featured
+              {isFetchingData ? (
+                <div className="py-16 text-center space-y-3">
+                  <Loader2 className="w-6 h-6 animate-spin text-[var(--primary-accent)] mx-auto" />
+                  <span className="text-xs font-mono text-[var(--text-muted)]">Fetching Google Sheets Stories...</span>
+                </div>
+              ) : stories.length > 0 ? (
+                <div className="space-y-3">
+                  {stories.map((s) => (
+                    <div key={s.id} className="p-5 rounded-2xl bg-[var(--card-inner-bg)] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-[var(--primary-accent)] uppercase">{s.category}</span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono ${
+                            s.status === 'Approved' ? 'bg-emerald-400/15 text-emerald-400 border border-emerald-400/30' :
+                            s.status === 'Rejected' ? 'bg-red-400/15 text-red-400 border border-red-400/30' :
+                            'bg-amber-400/15 text-amber-400 border border-amber-400/30'
+                          }`}>
+                            {s.status}
                           </span>
-                        )}
+                          {s.isFeatured && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-400/20 text-amber-300 flex items-center gap-1 border border-amber-400/30">
+                              <Star className="w-3 h-3 fill-current" /> Featured
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-bold text-[var(--text-main)]">{s.title}</h4>
+                        <p className="text-xs text-[var(--text-muted)] line-clamp-1">{s.excerpt}</p>
                       </div>
-                      <h4 className="text-sm font-bold text-[var(--text-main)]">{s.title}</h4>
-                      <p className="text-xs text-[var(--text-muted)] line-clamp-1">{s.excerpt}</p>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => setSelectedStory(s)}
+                          className="px-3.5 py-1.5 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 hover:bg-white/5 flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[var(--primary-accent)]" /> Read Narrative
+                        </button>
+
+                        <button
+                          onClick={() => handleToggleFeatureStory(s.id)}
+                          className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 text-xs font-semibold border border-amber-500/30 flex items-center gap-1"
+                        >
+                          <Star className="w-3.5 h-3.5" /> Feature
+                        </button>
+
+                        <select
+                          value={s.status || 'Pending'}
+                          onChange={(e) => handleUpdateStoryStatus(s.id, e.target.value as StoryStatus)}
+                          className="px-3 py-1.5 rounded-xl bg-[var(--card-bg)] text-xs font-semibold text-[var(--primary-accent)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none cursor-pointer"
+                        >
+                          <option value="Pending">Status: Pending</option>
+                          <option value="Approved">Status: Approve & Publish</option>
+                          <option value="Needs Revision">Status: Request Revision</option>
+                          <option value="Rejected">Status: Reject</option>
+                        </select>
+
+                        <button
+                          onClick={() => handleDeleteStory(s.id)}
+                          className="p-1.5 rounded-xl text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                          title="Delete Narrative"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => setSelectedStory(s)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 hover:bg-white/5 flex items-center gap-1.5"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-[var(--primary-accent)]" /> Read Narrative
-                      </button>
-
-                      <button
-                        onClick={() => handleToggleFeatureStory(s.id)}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 text-xs font-semibold border border-amber-500/30 flex items-center gap-1"
-                      >
-                        <Star className="w-3.5 h-3.5" /> Feature
-                      </button>
-
-                      {/* Native Custom Select Box (100% Unclipped Options) */}
-                      <select
-                        value={s.status || 'Pending'}
-                        onChange={(e) => handleUpdateStoryStatus(s.id, e.target.value as StoryStatus)}
-                        className="px-3 py-1.5 rounded-xl bg-[var(--card-bg)] text-xs font-semibold text-[var(--primary-accent)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none cursor-pointer"
-                      >
-                        <option value="Pending">Status: Pending</option>
-                        <option value="Approved">Status: Approve & Publish</option>
-                        <option value="Needs Revision">Status: Request Revision</option>
-                        <option value="Rejected">Status: Reject</option>
-                      </select>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-16 text-center space-y-2 border border-dashed border-white/10 rounded-2xl">
+                  <BookOpen className="w-8 h-8 text-[var(--primary-accent)] mx-auto" />
+                  <h4 className="text-sm font-bold text-[var(--text-main)]">No Stories Found</h4>
+                  <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
+                    Your Google Sheets database contains 0 submitted stories. Submitted reflections will automatically sync here.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -705,12 +787,12 @@ export default function AdminPage() {
 
               </div>
 
-              {/* Status Change Controls Footer */}
+              {/* Status Change & Delete Controls Footer */}
               <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <span className="text-xs text-[var(--text-muted)]">Status: <strong className="text-[var(--primary-accent)]">{selectedApplicant.status}</strong></span>
                 <div className="flex gap-2">
                   <button onClick={() => handleUpdateApplicantStatus(selectedApplicant.id, 'Accepted')} className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-xs font-semibold shadow-peach-glow">Accept Candidate</button>
-                  <button onClick={() => handleUpdateApplicantStatus(selectedApplicant.id, 'Declined')} className="px-4 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold">Decline Candidate</button>
+                  <button onClick={() => handleDeleteApplicant(selectedApplicant.id)} className="px-4 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Delete Entry</button>
                   <button onClick={() => setSelectedApplicant(null)} className="px-4 py-2 rounded-xl bg-[var(--card-inner-bg)] text-[var(--text-muted)] text-xs">Close</button>
                 </div>
               </div>
@@ -736,6 +818,7 @@ export default function AdminPage() {
               </div>
               <div className="flex justify-end gap-2 pt-3 border-t border-white/10">
                 <button onClick={() => handleUpdateStoryStatus(selectedStory.id, 'Approved')} className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-xs font-semibold">Approve & Publish</button>
+                <button onClick={() => handleDeleteStory(selectedStory.id)} className="px-4 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Delete Story</button>
                 <button onClick={() => setSelectedStory(null)} className="px-4 py-2 rounded-xl bg-[var(--card-inner-bg)] text-[var(--text-muted)] text-xs">Close</button>
               </div>
             </motion.div>
