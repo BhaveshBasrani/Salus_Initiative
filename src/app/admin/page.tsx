@@ -71,33 +71,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     try {
-      const isInitialized = localStorage.getItem('salus_team_initialized');
       const savedInfo = localStorage.getItem('salus_main_team_info');
       if (savedInfo) setMainTeamInfo(JSON.parse(savedInfo));
       const savedMembers = localStorage.getItem('salus_team_members');
-      if (savedMembers !== null) {
+      if (savedMembers && JSON.parse(savedMembers).length > 0) {
         setTeamMembers(JSON.parse(savedMembers));
-      } else if (!isInitialized) {
+      } else {
         setTeamMembers(MOCK_TEAM_MEMBERS);
       }
-    } catch {}
-
-    // Fetch team data from Apps Script
-    AppsScriptClient.getTeam()
-      .then((data) => {
-        if (data.mainTeamInfo) {
-          setMainTeamInfo(data.mainTeamInfo);
-          try { localStorage.setItem('salus_main_team_info', JSON.stringify(data.mainTeamInfo)); } catch {}
-        }
-        if (Array.isArray(data.members) && (data.members.length > 0 || localStorage.getItem('salus_team_initialized') === 'true')) {
-          setTeamMembers(data.members);
-          try {
-            localStorage.setItem('salus_team_members', JSON.stringify(data.members));
-            localStorage.setItem('salus_team_initialized', 'true');
-          } catch {}
-        }
-      })
-      .catch(() => {});
+    } catch {
+      setTeamMembers(MOCK_TEAM_MEMBERS);
+    }
   }, []);
   
   // Real Data State (Initialized to empty array so empty Google Sheets display 0 entries!)
