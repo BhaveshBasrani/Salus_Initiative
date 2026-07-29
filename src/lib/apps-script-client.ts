@@ -427,6 +427,12 @@ export const AppsScriptClient = {
         body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
       });
       if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
+      return await res.json();
+    } catch (err: any) {
+      console.error('deleteStory error:', err);
+      return { success: false, message: 'Network error deleting story entry.', timestamp: new Date().toISOString() };
+    }
+  },
   /**
    * Fetch team info and members list from AppsScript / local storage
    */
