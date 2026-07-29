@@ -1,4 +1,4 @@
-import { Story, Applicant, Resource, WhisperQuote, FAQItem, EventItem, AdminAnalytics, ApiResponse } from './types';
+import { Story, Applicant, Resource, WhisperQuote, FAQItem, EventItem, AdminAnalytics, ApiResponse, TeamMember, MainTeamInfo } from './types';
 
 const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL || '';
 
@@ -434,3 +434,89 @@ export const AppsScriptClient = {
     }
   },
 };
+
+export const DEFAULT_MAIN_TEAM_INFO: MainTeamInfo = {
+  title: "The Architects of Emotional Sanctuary",
+  subtitle: "A dedicated collective of student advocates, peer counselors, designers, and mental health advisors united to destigmatize youth well-being.",
+  mainTeamImageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=80",
+  narrativeText: "Salus Initiative was founded on a singular conviction: that mental health is a shared human journey, not a quiet burden. Our core team brings together student leaders from diverse backgrounds—combining neurological research, editorial storytelling, peer support networks, and compassionate community design. Together, we create safe spaces on school campuses and digital sanctuaries where every voice is heard without judgement.",
+  foundingYear: "2024",
+  chapterCount: "18+",
+  totalMembersCount: "45+",
+};
+
+export const MOCK_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: "team-1",
+    name: "Aanya Sharma",
+    role: "Founder & Executive Director",
+    category: "Leadership",
+    bio: "Passionate about peer advocacy and youth mental health accessibility. Aanya leads strategic initiatives and school chapter partnerships across the initiative.",
+    imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+    quote: "Creating space for vulnerable conversations is the first step toward collective healing.",
+    linkedinUrl: "https://linkedin.com",
+    email: "aanya@salusinitiative.org",
+    orderIndex: 1,
+  },
+  {
+    id: "team-2",
+    name: "Rohan Varma",
+    role: "Co-Founder & Head of Peer Programs",
+    category: "Leadership",
+    bio: "Pioneered the non-clinical peer support framework at Salus. Rohan oversees volunteer training, active listening circles, and student wellbeing circles.",
+    imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+    quote: "True empathy isn't offering advice; it's holding space so others feel genuinely heard.",
+    linkedinUrl: "https://linkedin.com",
+    email: "rohan@salusinitiative.org",
+    orderIndex: 2,
+  },
+  {
+    id: "team-3",
+    name: "Kavya Patel",
+    role: "Lead Editorial & Story Moderator",
+    category: "Editorial & Design",
+    bio: "Curates peer narratives and daily reflections. Kavya ensures every community submission adheres to psychological safety and empowering storytelling standards.",
+    imageUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+    quote: "Words have the power to transform isolated struggles into bridges of shared understanding.",
+    linkedinUrl: "https://linkedin.com",
+    email: "kavya@salusinitiative.org",
+    orderIndex: 3,
+  },
+  {
+    id: "team-4",
+    name: "Devansh Mehta",
+    role: "Creative Director & UX Lead",
+    category: "Editorial & Design",
+    bio: "Architect of the Salus aesthetic. Devansh fuses vintage anatomical illustration with warm editorial UI design to build calming digital sanctuaries.",
+    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
+    quote: "Design can evoke calm and dignity. Beauty in mental health tools reduces friction and stigma.",
+    linkedinUrl: "https://linkedin.com",
+    email: "devansh@salusinitiative.org",
+    orderIndex: 4,
+  },
+  {
+    id: "team-5",
+    name: "Dr. Sunita Rao",
+    role: "Clinical Advisor & Adolescent Psychologist",
+    category: "Advisors & Mentors",
+    bio: "Senior consultant in youth psychology providing ongoing guidance on helpline directory accuracy, crisis safety protocols, and volunteer training toolkits.",
+    imageUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80",
+    quote: "Bridging peer enthusiasm with evidence-based mental health principles creates sustainable impact.",
+    linkedinUrl: "https://linkedin.com",
+    email: "advisory@salusinitiative.org",
+    orderIndex: 5,
+  },
+  {
+    id: "team-6",
+    name: "Siddharth Nair",
+    role: "Campus Chapters & Outreach Lead",
+    category: "Peer Leads",
+    bio: "Coordinates high school and college charter chapters. Siddharth empowers student leads with resources to launch local wellbeing dialogues.",
+    imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
+    quote: "When students lead mental health conversations on campus, the culture shifts permanently.",
+    linkedinUrl: "https://linkedin.com",
+    email: "siddharth@salusinitiative.org",
+    orderIndex: 6,
+  },
+];
+

@@ -15,6 +15,7 @@ import {
   HeartHandshake,
   Home,
   Info,
+  Users,
   User as UserIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
@@ -58,6 +59,7 @@ export function DynamicIsland() {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/about', label: 'About', icon: Info },
+    { href: '/team', label: 'Team', icon: Users },
     { href: '/stories', label: 'Stories', icon: BookOpen },
     { href: '/volunteer', label: 'Volunteer', icon: HeartHandshake },
   ];

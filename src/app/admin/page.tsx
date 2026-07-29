@@ -36,10 +36,11 @@ import {
   Cloud,
   Palette,
   Loader2,
+  UserCheck,
 } from 'lucide-react';
 import { useAppStore, DynamicFellowshipRole, UserThemePreference, applyThemeToDocument } from '@/lib/store';
-import { AppsScriptClient } from '@/lib/apps-script-client';
-import { Applicant, Story, ApplicantStatus, StoryStatus } from '@/lib/types';
+import { AppsScriptClient, DEFAULT_MAIN_TEAM_INFO, MOCK_TEAM_MEMBERS } from '@/lib/apps-script-client';
+import { Applicant, Story, ApplicantStatus, StoryStatus, MainTeamInfo, TeamMember } from '@/lib/types';
 import { toast } from 'sonner';
 
 export default function AdminPage() {
@@ -56,7 +57,26 @@ export default function AdminPage() {
   } = useAppStore();
 
   const [passkeyInput, setPasskeyInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'applications' | 'stories' | 'roles' | 'media' | 'logs'>('applications');
+  const [activeTab, setActiveTab] = useState<'applications' | 'stories' | 'roles' | 'team' | 'media' | 'logs'>('applications');
+  
+  // Main Team State
+  const [mainTeamInfo, setMainTeamInfo] = useState<MainTeamInfo>(DEFAULT_MAIN_TEAM_INFO);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(MOCK_TEAM_MEMBERS);
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('');
+  const [newMemberCategory, setNewMemberCategory] = useState('Leadership');
+  const [newMemberBio, setNewMemberBio] = useState('');
+  const [newMemberImageUrl, setNewMemberImageUrl] = useState('');
+  const [newMemberQuote, setNewMemberQuote] = useState('');
+
+  useEffect(() => {
+    try {
+      const savedInfo = localStorage.getItem('salus_main_team_info');
+      if (savedInfo) setMainTeamInfo(JSON.parse(savedInfo));
+      const savedMembers = localStorage.getItem('salus_team_members');
+      if (savedMembers) setTeamMembers(JSON.parse(savedMembers));
+    } catch {}
+  }, []);
   
   // Real Data State (Initialized to empty array so empty Google Sheets display 0 entries!)
   const [applicants, setApplicants] = useState<Applicant[]>([]);
@@ -211,6 +231,54 @@ export default function AdminPage() {
     setEditingRoleId(null);
   };
 
+  const handleSaveMainTeamInfo = (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      localStorage.setItem('salus_main_team_info', JSON.stringify(mainTeamInfo));
+      toast.success('Main Team picture and text details updated successfully!');
+    } catch {
+      toast.error('Failed to save team details');
+    }
+  };
+
+  const handleAddTeamMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberName || !newMemberRole || !newMemberBio) {
+      toast.error('Please fill in member name, role, and biography.');
+      return;
+    }
+    const newMember: TeamMember = {
+      id: `team-${Date.now()}`,
+      name: newMemberName,
+      role: newMemberRole,
+      category: newMemberCategory,
+      bio: newMemberBio,
+      imageUrl: newMemberImageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+      quote: newMemberQuote,
+    };
+    const updated = [newMember, ...teamMembers];
+    setTeamMembers(updated);
+    try {
+      localStorage.setItem('salus_team_members', JSON.stringify(updated));
+    } catch {}
+    toast.success(`Added new team member: ${newMemberName}`);
+    setNewMemberName('');
+    setNewMemberRole('');
+    setNewMemberBio('');
+    setNewMemberImageUrl('');
+    setNewMemberQuote('');
+  };
+
+  const handleDeleteTeamMember = (memberId: string) => {
+    const updated = teamMembers.filter((m) => m.id !== memberId);
+    setTeamMembers(updated);
+    try {
+      localStorage.setItem('salus_team_members', JSON.stringify(updated));
+    } catch {}
+    toast.success('Team member removed.');
+  };
+
+
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-main)] flex items-center justify-center p-4 select-none transition-colors duration-300">
@@ -319,6 +387,7 @@ export default function AdminPage() {
           {[
             { id: 'applications', label: `Applicants (${applicants.length})`, icon: Users },
             { id: 'stories', label: `Stories (${stories.length})`, icon: BookOpen },
+            { id: 'team', label: `Main Team (${teamMembers.length})`, icon: UserCheck },
             { id: 'roles', label: 'Roles & Default Theme', icon: Layers },
             { id: 'media', label: 'Google Drive Media', icon: ExternalLink },
             { id: 'logs', label: 'System Logs', icon: Activity },
@@ -538,6 +607,265 @@ export default function AdminPage() {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* MAIN TEAM & NARRATIVE MANAGEMENT TAB */}
+          {activeTab === 'team' && (
+            <div className="space-y-8">
+              {/* EDIT MAIN TEAM HERO & NARRATIVE */}
+              <form onSubmit={handleSaveMainTeamInfo} className="p-6 md:p-8 rounded-3xl bg-[var(--card-inner-bg)] border border-white/10 space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-[var(--primary-accent)]" /> Main Team Picture & Narrative Control
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Update the featured Main Team group photograph, header titles, and narrative story displayed on the /team page and About section.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1.5">
+                        Main Team Image URL
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={mainTeamInfo.mainTeamImageUrl}
+                        onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, mainTeamImageUrl: e.target.value })}
+                        placeholder="https://images.unsplash.com/..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1.5">
+                        Headline Title
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={mainTeamInfo.title}
+                        onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, title: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1.5">
+                        Subtitle / Tagline
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={mainTeamInfo.subtitle}
+                        onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, subtitle: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Founding Year</label>
+                        <input
+                          type="text"
+                          value={mainTeamInfo.foundingYear}
+                          onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, foundingYear: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-[var(--card-bg)] text-xs font-mono text-[var(--text-main)] border border-white/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Chapters</label>
+                        <input
+                          type="text"
+                          value={mainTeamInfo.chapterCount}
+                          onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, chapterCount: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-[var(--card-bg)] text-xs font-mono text-[var(--text-main)] border border-white/10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono uppercase text-[var(--text-muted)] block mb-1">Total Members</label>
+                        <input
+                          type="text"
+                          value={mainTeamInfo.totalMembersCount}
+                          onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, totalMembersCount: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-[var(--card-bg)] text-xs font-mono text-[var(--text-main)] border border-white/10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1.5">
+                        Live Image Preview
+                      </label>
+                      <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-[var(--card-bg)] border border-white/10">
+                        <img
+                          src={mainTeamInfo.mainTeamImageUrl}
+                          alt="Main Team Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1.5">
+                        Narrative Story Text
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={mainTeamInfo.narrativeText}
+                        onChange={(e) => setMainTeamInfo({ ...mainTeamInfo, narrativeText: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10 focus:border-[var(--primary-accent)] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-[var(--primary-accent)] hover:bg-[var(--accent-hover)] text-[var(--button-text)] text-xs font-semibold shadow-peach-glow transition-all flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4" /> Save Main Team Showcase Details
+                </button>
+              </form>
+
+              {/* ADD INDIVIDUAL TEAM MEMBER */}
+              <form onSubmit={handleAddTeamMember} className="p-6 md:p-8 rounded-3xl bg-[var(--card-inner-bg)] border border-white/10 space-y-6">
+                <div>
+                  <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-[var(--primary-accent)]" /> Add Individual Team Member
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Add new leaders, peer counselors, editorial moderators, or advisors to the team roster.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Ananya Roy"
+                      value={newMemberName}
+                      onChange={(e) => setNewMemberName(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Role Title</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Lead Peer Counselor"
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Category Track</label>
+                    <select
+                      value={newMemberCategory}
+                      onChange={(e) => setNewMemberCategory(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                    >
+                      <option value="Leadership">Leadership</option>
+                      <option value="Peer Leads">Peer Leads</option>
+                      <option value="Editorial & Design">Editorial & Design</option>
+                      <option value="Advisors & Mentors">Advisors & Mentors</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Photo Image URL</label>
+                    <input
+                      type="text"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newMemberImageUrl}
+                      onChange={(e) => setNewMemberImageUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Quote / Statement (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="Short reflection..."
+                      value={newMemberQuote}
+                      onChange={(e) => setNewMemberQuote(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Biography</label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="Brief bio about member's role and background..."
+                    value={newMemberBio}
+                    onChange={(e) => setNewMemberBio(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-[var(--primary-accent)] text-[var(--button-text)] text-xs font-semibold shadow-peach-glow hover:bg-[var(--accent-hover)] transition-all flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Add Team Member To Roster
+                </button>
+              </form>
+
+              {/* ROSTER LIST */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[var(--primary-accent)]" /> Current Team Roster ({teamMembers.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className="p-4 rounded-2xl bg-[var(--card-inner-bg)] border border-white/10 space-y-3 flex flex-col justify-between">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={member.imageUrl}
+                            alt={member.name}
+                            className="w-12 h-12 rounded-xl object-cover border border-white/10"
+                          />
+                          <div>
+                            <span className="text-[9px] font-mono uppercase text-[var(--primary-accent)] bg-[var(--primary-accent)]/10 px-2 py-0.5 rounded-full">
+                              {member.category}
+                            </span>
+                            <h4 className="text-xs font-bold text-[var(--text-main)] mt-1">{member.name}</h4>
+                            <p className="text-[11px] text-[var(--text-muted)]">{member.role}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteTeamMember(member.id)}
+                          className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                          title="Remove Member"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 leading-relaxed">
+                        {member.bio}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

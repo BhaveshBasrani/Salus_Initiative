@@ -184,3 +184,27 @@ export interface ApiResponse<T = any> {
   subscriberId?: string;
   resumeUrl?: string;
 }
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  category: 'Leadership' | 'Peer Leads' | 'Editorial & Design' | 'Advisors & Mentors' | string;
+  bio: string;
+  imageUrl: string;
+  quote?: string;
+  linkedinUrl?: string;
+  email?: string;
+  orderIndex?: number;
+}
+
+export interface MainTeamInfo {
+  title: string;
+  subtitle: string;
+  mainTeamImageUrl: string;
+  narrativeText: string;
+  foundingYear: string;
+  chapterCount: string;
+  totalMembersCount: string;
+}
+

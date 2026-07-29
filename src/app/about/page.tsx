@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Heart, ChevronDown, Users, BookOpen, Sparkles, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Shield, Heart, ChevronDown, Users, BookOpen, Sparkles, HelpCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { MOCK_FAQS } from '@/lib/apps-script-client';
 import { assetPath } from '@/lib/prefix';
 
@@ -121,6 +122,31 @@ export default function AboutPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* MAIN TEAM SPOTLIGHT BANNER */}
+      <section className="py-16 md:py-20 px-4 md:px-8 border-t border-white/10 bg-[var(--card-inner-bg)]/40">
+        <div className="max-w-6xl mx-auto bg-[var(--card-bg)] p-6 md:p-12 rounded-3xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-editorial">
+          <div className="space-y-4 max-w-xl">
+            <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--primary-accent)] inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--primary-accent)]/10 border border-[var(--primary-accent)]/20">
+              <Users className="w-3.5 h-3.5" /> Main Leadership & Advocates
+            </span>
+            <h2 className="editorial-title text-2xl md:text-4xl font-bold text-[var(--text-main)]">
+              Meet The Architects Behind Salus Initiative
+            </h2>
+            <p className="editorial-body text-xs md:text-sm text-[var(--text-muted)] leading-relaxed">
+              Our core team combines peer youth advocates, creative storytellers, and clinical advisory mentors working together to empower student well-being.
+            </p>
+          </div>
+
+          <Link
+            href="/team"
+            className="px-6 py-3.5 rounded-full bg-[var(--primary-accent)] hover:bg-[var(--accent-hover)] text-[var(--button-text)] font-semibold text-xs transition-all shadow-peach-glow inline-flex items-center gap-2 shrink-0"
+          >
+            <span>Explore Main Team Page</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 

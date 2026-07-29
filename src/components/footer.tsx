@@ -85,6 +85,7 @@ export function Footer() {
             <ul className="space-y-1.5">
               <li><Link href="/" className="hover:text-[var(--text-main)]">Home</Link></li>
               <li><Link href="/about" className="hover:text-[var(--text-main)]">About Mission</Link></li>
+              <li><Link href="/team" className="hover:text-[var(--text-main)]">Main Team & Leadership</Link></li>
               <li><Link href="/stories" className="hover:text-[var(--text-main)]">Community Stories</Link></li>
               <li><Link href="/volunteer" className="hover:text-[var(--text-main)]">Join Us</Link></li>
               <li><Link href="/dashboard" className="hover:text-[var(--text-main)]">User Dashboard</Link></li>

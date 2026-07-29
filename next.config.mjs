@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || (isProd ? '/Salus_Initiative' : '');
+
 const nextConfig = {
   output: 'export',
-  basePath: isProd ? '/Salus_Initiative' : '',
-  assetPrefix: isProd ? '/Salus_Initiative' : '',
+  basePath: basePath,
   trailingSlash: true,
   images: {
     unoptimized: true,
@@ -13,3 +14,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+
