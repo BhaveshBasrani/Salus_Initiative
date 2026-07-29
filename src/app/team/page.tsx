@@ -42,61 +42,6 @@ export default function TeamPage() {
             {teamInfo.subtitle}
           </p>
         </div>
-
-        {/* FEATURED STORY BANNER */}
-        <div className="bg-[var(--card-bg)] p-6 md:p-10 rounded-3xl border border-white/10 shadow-editorial grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-center overflow-hidden relative">
-          
-          {/* Main Showcase Image */}
-          <div className="lg:col-span-7 relative w-full h-64 sm:h-80 md:h-[400px] rounded-2xl overflow-hidden bg-[var(--card-inner-bg)] border border-white/10 group">
-            <img
-              src={assetPath(teamInfo.mainTeamImageUrl)}
-              alt="Salus Initiative Founder"
-              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--primary-accent)] bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 w-max mb-1">
-                Student-Led Movement
-              </span>
-              <p className="editorial-title text-lg md:text-xl font-bold text-white">
-                By Students, For Students
-              </p>
-            </div>
-          </div>
-
-          {/* Narrative Story */}
-          <div className="lg:col-span-5 space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[var(--primary-accent)]" />
-                <span className="text-xs font-mono uppercase tracking-widest text-[var(--primary-accent)]">
-                  Our Origin Story
-                </span>
-              </div>
-              <h2 className="editorial-title text-2xl font-bold text-[var(--text-main)]">
-                Destigmatizing Stress & Building Emotional Sanctuary
-              </h2>
-              <p className="editorial-body text-xs md:text-sm text-[var(--text-muted)] leading-relaxed">
-                {teamInfo.narrativeText}
-              </p>
-            </div>
-
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
-              <div className="p-3 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 text-center">
-                <span className="text-xl font-bold text-[var(--primary-accent)] font-mono">2024</span>
-                <p className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 uppercase">Established</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 text-center">
-                <span className="text-xl font-bold text-[var(--primary-accent)] font-mono">100%</span>
-                <p className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 uppercase">Student-Led</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 text-center">
-                <span className="text-xl font-bold text-[var(--primary-accent)] font-mono">24/7</span>
-                <p className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5 uppercase">Peer Space</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </motion.section>
 
       {/* TEAM MEMBERS DISPLAY GRID */}
