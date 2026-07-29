@@ -38,6 +38,9 @@ function doGet(e) {
       case 'getFaqs':
         response = FaqService.getFaqs();
         break;
+      case 'getTeam':
+        response = TeamService.getTeamData();
+        break;
       case 'getAdminData':
         response = AdminService.getAdminData(passkey);
         break;
@@ -100,6 +103,18 @@ function doPost(e) {
         break;
       case 'deleteStory':
         response = AdminService.deleteStory(postData.storyId, postData.passkey);
+        break;
+      case 'updateMainTeamInfo':
+        response = TeamService.updateMainTeamInfo(postData);
+        break;
+      case 'addTeamMember':
+        response = TeamService.addTeamMember(postData);
+        break;
+      case 'deleteTeamMember':
+        response = TeamService.deleteTeamMember(postData);
+        break;
+      case 'saveAllTeamMembers':
+        response = TeamService.saveAllTeamMembers(postData);
         break;
       default:
         response = { success: false, error: 'Invalid API Action: ' + action };
@@ -445,6 +460,98 @@ var AdminService = {
   }
 };
 
+// ==========================================
+// TEAM MANAGEMENT SERVICE
+// ==========================================
+var TeamService = {
+  getTeamData: function() {
+    var infoSheet = Repository.getData('MainTeamInfo');
+    var members = Repository.getData('Team');
+    var mainTeamInfo = (infoSheet && infoSheet.length > 0) ? infoSheet[0] : null;
+    return {
+      success: true,
+      mainTeamInfo: mainTeamInfo,
+      members: members || []
+    };
+  },
+
+  updateMainTeamInfo: function(postData) {
+    if (CONFIG.ADMIN_PASSKEY && postData.passkey !== CONFIG.ADMIN_PASSKEY) {
+      return { success: false, error: 'Unauthorized passkey' };
+    }
+    var sheet = Repository.getSheet('MainTeamInfo');
+    sheet.clearContents();
+    sheet.appendRow(['Title', 'Subtitle', 'MainTeamImageUrl', 'NarrativeText', 'FoundingYear', 'ChapterCount', 'TotalMembersCount']);
+    sheet.appendRow([
+      postData.title || '',
+      postData.subtitle || '',
+      postData.mainTeamImageUrl || '',
+      postData.narrativeText || '',
+      postData.foundingYear || '',
+      postData.chapterCount || '',
+      postData.totalMembersCount || ''
+    ]);
+    return { success: true, message: 'Main team info updated' };
+  },
+
+  addTeamMember: function(postData) {
+    if (CONFIG.ADMIN_PASSKEY && postData.passkey !== CONFIG.ADMIN_PASSKEY) {
+      return { success: false, error: 'Unauthorized passkey' };
+    }
+    var member = postData.member;
+    if (!member) return { success: false, error: 'Missing member payload' };
+    Repository.appendRow('Team', [
+      member.id || ('team-' + new Date().getTime()),
+      member.name || '',
+      member.role || '',
+      member.category || 'Leadership',
+      member.bio || '',
+      member.imageUrl || '',
+      member.quote || '',
+      member.linkedinUrl || '',
+      member.email || '',
+      member.orderIndex || 1
+    ]);
+    return { success: true, message: 'Team member added' };
+  },
+
+  deleteTeamMember: function(postData) {
+    if (CONFIG.ADMIN_PASSKEY && postData.passkey !== CONFIG.ADMIN_PASSKEY) {
+      return { success: false, error: 'Unauthorized passkey' };
+    }
+    var memberId = postData.memberId;
+    if (!memberId) return { success: false, error: 'Missing memberId' };
+    var deleted = Repository.deleteRowByKeyValue('Team', 'ID', memberId);
+    return { success: deleted, message: deleted ? 'Member deleted' : 'Member ID not found' };
+  },
+
+  saveAllTeamMembers: function(postData) {
+    if (CONFIG.ADMIN_PASSKEY && postData.passkey !== CONFIG.ADMIN_PASSKEY) {
+      return { success: false, error: 'Unauthorized passkey' };
+    }
+    var sheet = Repository.getSheet('Team');
+    sheet.clearContents();
+    sheet.appendRow(['ID', 'Name', 'Role', 'Category', 'Bio', 'ImageUrl', 'Quote', 'LinkedinUrl', 'Email', 'OrderIndex']);
+    var members = postData.members || [];
+    for (var i = 0; i < members.length; i++) {
+      var m = members[i];
+      sheet.appendRow([
+        m.id || ('team-' + (i + 1)),
+        m.name || '',
+        m.role || '',
+        m.category || 'Leadership',
+        m.bio || '',
+        m.imageUrl || '',
+        m.quote || '',
+        m.linkedinUrl || '',
+        m.email || '',
+        m.orderIndex || (i + 1)
+      ]);
+    }
+    return { success: true, message: 'All team members updated in Google Sheets' };
+  }
+};
+
 // ==============================================================================
 // 200X LUXURY EDITORIAL EMAIL DISPATCHER (Dark RenderVoid Magazine Architecture)
 // ==============================================================================
@@ -572,6 +679,16 @@ function initSalusSheets() {
       name: 'SystemLogs',
       headers: ['ID', 'Timestamp', 'Level', 'Channel', 'Message'],
       sample: ['LOG-5001', new Date().toISOString(), 'INFO', 'SystemInitializer', 'Salus Sheets schema initialized successfully.']
+    },
+    {
+      name: 'Team',
+      headers: ['ID', 'Name', 'Role', 'Category', 'Bio', 'ImageUrl', 'Quote', 'LinkedinUrl', 'Email', 'OrderIndex'],
+      sample: ['team-1', 'Aanya Sharma', 'Founder & Executive Director', 'Leadership', 'Passionate about peer advocacy and youth mental health accessibility.', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80', 'Creating space for vulnerable conversations is the first step toward collective healing.', 'https://linkedin.com', 'aanya@salusinitiative.org', 1]
+    },
+    {
+      name: 'MainTeamInfo',
+      headers: ['Title', 'Subtitle', 'MainTeamImageUrl', 'NarrativeText', 'FoundingYear', 'ChapterCount', 'TotalMembersCount'],
+      sample: ['The Architects of Emotional Sanctuary', 'A dedicated collective of student advocates, peer counselors, and advisors.', 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=80', 'Salus Initiative was founded on a singular conviction: that mental health is a shared human journey.', '2024', '18+', '45+']
     }
   ];
 

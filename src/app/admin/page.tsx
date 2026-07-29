@@ -71,11 +71,33 @@ export default function AdminPage() {
 
   useEffect(() => {
     try {
+      const isInitialized = localStorage.getItem('salus_team_initialized');
       const savedInfo = localStorage.getItem('salus_main_team_info');
       if (savedInfo) setMainTeamInfo(JSON.parse(savedInfo));
       const savedMembers = localStorage.getItem('salus_team_members');
-      if (savedMembers) setTeamMembers(JSON.parse(savedMembers));
+      if (savedMembers !== null) {
+        setTeamMembers(JSON.parse(savedMembers));
+      } else if (!isInitialized) {
+        setTeamMembers(MOCK_TEAM_MEMBERS);
+      }
     } catch {}
+
+    // Fetch team data from Apps Script
+    AppsScriptClient.getTeam()
+      .then((data) => {
+        if (data.mainTeamInfo) {
+          setMainTeamInfo(data.mainTeamInfo);
+          try { localStorage.setItem('salus_main_team_info', JSON.stringify(data.mainTeamInfo)); } catch {}
+        }
+        if (Array.isArray(data.members) && (data.members.length > 0 || localStorage.getItem('salus_team_initialized') === 'true')) {
+          setTeamMembers(data.members);
+          try {
+            localStorage.setItem('salus_team_members', JSON.stringify(data.members));
+            localStorage.setItem('salus_team_initialized', 'true');
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, []);
   
   // Real Data State (Initialized to empty array so empty Google Sheets display 0 entries!)
@@ -231,17 +253,20 @@ export default function AdminPage() {
     setEditingRoleId(null);
   };
 
-  const handleSaveMainTeamInfo = (e: React.FormEvent) => {
+  const handleSaveMainTeamInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       localStorage.setItem('salus_main_team_info', JSON.stringify(mainTeamInfo));
-      toast.success('Main Team picture and text details updated successfully!');
-    } catch {
-      toast.error('Failed to save team details');
-    }
+      localStorage.setItem('salus_team_initialized', 'true');
+    } catch {}
+    toast.success('Main Team picture and text details saved!');
+
+    try {
+      await AppsScriptClient.updateMainTeamInfo(mainTeamInfo, 'salus2026');
+    } catch {}
   };
 
-  const handleAddTeamMember = (e: React.FormEvent) => {
+  const handleAddTeamMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMemberName || !newMemberRole || !newMemberBio) {
       toast.error('Please fill in member name, role, and biography.');
@@ -260,6 +285,7 @@ export default function AdminPage() {
     setTeamMembers(updated);
     try {
       localStorage.setItem('salus_team_members', JSON.stringify(updated));
+      localStorage.setItem('salus_team_initialized', 'true');
     } catch {}
     toast.success(`Added new team member: ${newMemberName}`);
     setNewMemberName('');
@@ -267,15 +293,50 @@ export default function AdminPage() {
     setNewMemberBio('');
     setNewMemberImageUrl('');
     setNewMemberQuote('');
+
+    try {
+      await AppsScriptClient.saveTeamMembers(updated, 'salus2026');
+    } catch {}
   };
 
-  const handleDeleteTeamMember = (memberId: string) => {
+  const handleDeleteTeamMember = async (memberId: string) => {
     const updated = teamMembers.filter((m) => m.id !== memberId);
     setTeamMembers(updated);
     try {
       localStorage.setItem('salus_team_members', JSON.stringify(updated));
+      localStorage.setItem('salus_team_initialized', 'true');
     } catch {}
     toast.success('Team member removed.');
+
+    try {
+      await AppsScriptClient.saveTeamMembers(updated, 'salus2026');
+    } catch {}
+  };
+
+  const handleClearAllTeamMembers = async () => {
+    setTeamMembers([]);
+    try {
+      localStorage.setItem('salus_team_members', JSON.stringify([]));
+      localStorage.setItem('salus_team_initialized', 'true');
+    } catch {}
+    toast.success('All team members removed from roster.');
+
+    try {
+      await AppsScriptClient.saveTeamMembers([], 'salus2026');
+    } catch {}
+  };
+
+  const handleResetDefaultTeamMembers = async () => {
+    setTeamMembers(MOCK_TEAM_MEMBERS);
+    try {
+      localStorage.setItem('salus_team_members', JSON.stringify(MOCK_TEAM_MEMBERS));
+      localStorage.setItem('salus_team_initialized', 'true');
+    } catch {}
+    toast.success('Reset team members to default roster.');
+
+    try {
+      await AppsScriptClient.saveTeamMembers(MOCK_TEAM_MEMBERS, 'salus2026');
+    } catch {}
   };
 
 
@@ -828,9 +889,29 @@ export default function AdminPage() {
 
               {/* ROSTER LIST */}
               <div className="space-y-4">
-                <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[var(--primary-accent)]" /> Current Team Roster ({teamMembers.length})
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[var(--primary-accent)]" /> Current Team Roster ({teamMembers.length})
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleResetDefaultTeamMembers}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs font-semibold border border-white/10 transition-colors"
+                    >
+                      Reset Default Demo Roster
+                    </button>
+                    {teamMembers.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleClearAllTeamMembers}
+                        className="px-3 py-1.5 rounded-xl bg-red-500/20 text-red-300 hover:bg-red-500/30 text-xs font-semibold border border-red-500/30 transition-colors"
+                      >
+                        Clear All Members
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {teamMembers.map((member) => (
                     <div key={member.id} className="p-4 rounded-2xl bg-[var(--card-inner-bg)] border border-white/10 space-y-3 flex flex-col justify-between">

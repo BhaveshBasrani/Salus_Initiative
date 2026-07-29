@@ -33,19 +33,41 @@ export default function TeamPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   useEffect(() => {
-    // Load custom team info or members from localStorage if customized in admin panel
+    // Check local storage first
     try {
+      const isInitialized = localStorage.getItem('salus_team_initialized');
       const savedInfo = localStorage.getItem('salus_main_team_info');
       if (savedInfo) {
         setTeamInfo(JSON.parse(savedInfo));
       }
       const savedMembers = localStorage.getItem('salus_team_members');
-      if (savedMembers) {
+      if (savedMembers !== null) {
         setMembers(JSON.parse(savedMembers));
+      } else if (!isInitialized) {
+        setMembers(MOCK_TEAM_MEMBERS);
       }
     } catch (e) {
       console.warn('Using default team data', e);
     }
+
+    // Fetch live team data from Google Apps Script
+    AppsScriptClient.getTeam()
+      .then((data) => {
+        if (data.mainTeamInfo) {
+          setTeamInfo(data.mainTeamInfo);
+          try { localStorage.setItem('salus_main_team_info', JSON.stringify(data.mainTeamInfo)); } catch {}
+        }
+        if (Array.isArray(data.members) && (data.members.length > 0 || localStorage.getItem('salus_team_initialized') === 'true')) {
+          setMembers(data.members);
+          try {
+            localStorage.setItem('salus_team_members', JSON.stringify(data.members));
+            localStorage.setItem('salus_team_initialized', 'true');
+          } catch {}
+        }
+      })
+      .catch((err) => {
+        console.warn('AppsScript team fetch fallback', err);
+      });
   }, []);
 
   const categories = ['All', 'Leadership', 'Peer Leads', 'Editorial & Design', 'Advisors & Mentors'];

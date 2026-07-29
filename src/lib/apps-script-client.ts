@@ -427,10 +427,84 @@ export const AppsScriptClient = {
         body: JSON.stringify({ action: 'deleteStory', storyId, passkey }),
       });
       if (!res.ok) return { success: false, message: `Server HTTP error: ${res.status}`, timestamp: new Date().toISOString() };
+  /**
+   * Fetch team info and members list from AppsScript / local storage
+   */
+  async getTeam(): Promise<{ mainTeamInfo: MainTeamInfo | null; members: TeamMember[] }> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
+      return { mainTeamInfo: null, members: [] };
+    }
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getTeam`);
+      if (!res.ok) return { mainTeamInfo: null, members: [] };
+      const json = await res.json();
+      return {
+        mainTeamInfo: json.mainTeamInfo || null,
+        members: json.members || [],
+      };
+    } catch (err) {
+      console.error('getTeam error:', err);
+      return { mainTeamInfo: null, members: [] };
+    }
+  },
+
+  /**
+   * Save Main Team hero info to Apps Script
+   */
+  async updateMainTeamInfo(info: MainTeamInfo, passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
+      return { success: true, message: 'Main team info updated locally.', timestamp: new Date().toISOString() };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'updateMainTeamInfo', ...info, passkey }),
+      });
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
       return await res.json();
     } catch (err: any) {
-      console.error('deleteStory error:', err);
-      return { success: false, message: 'Network error deleting story entry.', timestamp: new Date().toISOString() };
+      return { success: false, message: err.message || 'Network error updating team info' };
+    }
+  },
+
+  /**
+   * Save all team members to Apps Script
+   */
+  async saveTeamMembers(members: TeamMember[], passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
+      return { success: true, message: 'Team members updated locally.', timestamp: new Date().toISOString() };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'saveAllTeamMembers', members, passkey }),
+      });
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Network error saving team members' };
+    }
+  },
+
+  /**
+   * Delete team member by ID
+   */
+  async deleteTeamMember(memberId: string, passkey: string): Promise<ApiResponse> {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('demo')) {
+      return { success: true, message: `Member ${memberId} deleted.`, timestamp: new Date().toISOString() };
+    }
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'deleteTeamMember', memberId, passkey }),
+      });
+      if (!res.ok) return { success: false, message: `Server error: ${res.status}` };
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Network error deleting team member' };
     }
   },
 };
