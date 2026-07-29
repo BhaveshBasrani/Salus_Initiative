@@ -4,7 +4,9 @@
  * so public static assets need this prefix when referenced directly.
  */
 const isProd = process.env.NODE_ENV === 'production';
-export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || (isProd ? '/Salus_Initiative' : '');
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH !== undefined
+  ? process.env.NEXT_PUBLIC_BASE_PATH
+  : (isProd ? '/Salus_Initiative' : '');
 
 /**
  * Prepend the basePath to a public asset path if not already present.
