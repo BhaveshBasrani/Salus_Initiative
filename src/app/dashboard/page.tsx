@@ -53,6 +53,8 @@ export default function UserDashboardPage() {
     setUser,
     logout,
     bookmarkedStoryIds,
+    toggleBookmarkStory,
+    clearBookmarks,
     userApplication,
     withdrawUserApplication,
     activityStreakCount,
@@ -79,6 +81,8 @@ export default function UserDashboardPage() {
     targetGroup: 'Student',
   });
 
+  const [allStories, setAllStories] = useState<any[]>(MOCK_STORIES);
+
   useEffect(() => {
     const themeToApply = user ? userTheme : defaultTheme;
     applyThemeToDocument(themeToApply);
@@ -86,6 +90,19 @@ export default function UserDashboardPage() {
     if (user) {
       recordTodayActivity();
     }
+
+    // Fetch dynamic stories from Apps Script
+    import('@/lib/apps-script-client').then(({ AppsScriptClient }) => {
+      AppsScriptClient.getStories()
+        .then((stories: any[]) => {
+          if (Array.isArray(stories) && stories.length > 0) {
+            const existingIds = new Set(MOCK_STORIES.map((s) => s.id));
+            const newStories = stories.filter((s: any) => !existingIds.has(s.id));
+            setAllStories([...MOCK_STORIES, ...newStories]);
+          }
+        })
+        .catch(() => {});
+    });
   }, [userTheme, defaultTheme, user, recordTodayActivity]);
 
   const themeOptions: { name: UserThemePreference; color: string; desc: string }[] = [
@@ -154,6 +171,7 @@ export default function UserDashboardPage() {
 
     try {
       if (authMode === 'signup') {
+        clearBookmarks();
         const result = await firebaseCreateUserWithPassword(auth, emailInput, passwordInput);
         setUser({
           uid: result.user.uid,
@@ -236,7 +254,7 @@ export default function UserDashboardPage() {
     toast.success('Newsletter digest preferences updated!');
   };
 
-  const savedStories = MOCK_STORIES.filter((s) => bookmarkedStoryIds.includes(s.id));
+  const savedStories = allStories.filter((s) => bookmarkedStoryIds.includes(s.id));
 
   const dashboardTabs = [
     { id: 'profile', label: 'My Profile', icon: User },
@@ -547,12 +565,16 @@ export default function UserDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('bookmarks')}
+                      className="p-4 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 space-y-1 text-left hover:border-[var(--primary-accent)]/40 transition-all group"
+                    >
+                      <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] group-hover:text-[var(--primary-accent)] transition-colors flex items-center gap-1">
                         <Bookmark className="w-3.5 h-3.5 text-[var(--primary-accent)]" /> Saved Articles
                       </span>
-                      <p className="text-2xl font-bold text-[var(--text-main)]">{bookmarkedStoryIds.length}</p>
-                    </div>
+                      <p className="text-2xl font-bold text-[var(--text-main)] group-hover:text-[var(--primary-accent)] transition-colors">{bookmarkedStoryIds.length}</p>
+                    </button>
 
                     {/* REAL DYNAMIC ACTIVITY STREAK */}
                     <div className="p-4 rounded-2xl bg-[var(--card-inner-bg)] border border-white/5 space-y-1">
@@ -720,20 +742,42 @@ export default function UserDashboardPage() {
               {/* 3. SAVED BOOKMARKS TAB */}
               {activeTab === 'bookmarks' && (
                 <div className="space-y-6">
-                  <h3 className="editorial-title text-xl font-bold text-[var(--text-main)]">
-                    Saved Bookmarks & Reading List
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 className="editorial-title text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                      <Bookmark className="w-5 h-5 text-[var(--primary-accent)]" /> Saved Bookmarks & Reading List ({bookmarkedStoryIds.length})
+                    </h3>
+                    {bookmarkedStoryIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearBookmarks}
+                        className="px-3.5 py-1.5 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500/30 text-xs font-semibold border border-red-500/30 transition-colors w-max"
+                      >
+                        Clear All Bookmarks
+                      </button>
+                    )}
+                  </div>
+
                   {savedStories.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {savedStories.map((story) => (
                         <div key={story.id} className="p-5 rounded-2xl bg-[var(--card-inner-bg)] border border-white/10 space-y-3 flex flex-col justify-between">
                           <div className="space-y-2">
-                            <span className="text-[10px] font-mono text-[var(--primary-accent)] uppercase">{story.category}</span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-mono text-[var(--primary-accent)] uppercase">{story.category}</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleBookmarkStory(story.id)}
+                                className="text-[10px] text-red-400 hover:text-red-300 font-mono hover:underline"
+                                title="Remove bookmark"
+                              >
+                                Remove
+                              </button>
+                            </div>
                             <h4 className="text-xs font-bold text-[var(--text-main)]">{story.title}</h4>
-                            <p className="text-xs text-[var(--text-muted)] line-clamp-2">{story.excerpt}</p>
+                            <p className="text-xs text-[var(--text-muted)] line-clamp-2">{story.excerpt || story.content}</p>
                           </div>
                           <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs">
-                            <span className="text-[11px] text-[var(--text-muted)]">{story.readTime}</span>
+                            <span className="text-[11px] text-[var(--text-muted)]">{story.readTime || '3 min read'}</span>
                             <Link href="/stories" className="text-xs font-semibold text-[var(--primary-accent)] hover:underline flex items-center gap-1">
                               Read Story <ArrowRight className="w-3 h-3" />
                             </Link>
@@ -746,7 +790,7 @@ export default function UserDashboardPage() {
                       <Bookmark className="w-10 h-10 text-[var(--primary-accent)] mx-auto" />
                       <div className="space-y-1">
                         <h4 className="text-base font-bold text-[var(--text-main)]">No Saved Articles Yet</h4>
-                        <p className="text-xs text-[var(--text-muted)]">Explore peer stories in our journal and click the bookmark icon to save them here for quiet reading.</p>
+                        <p className="text-xs text-[var(--text-muted)]">Explore peer stories in our journal and click the bookmark icon on any story to save it here for quiet reading.</p>
                       </div>
                       <Link href="/stories" className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[var(--primary-accent)] text-[var(--button-text)] text-xs font-semibold shadow-peach-glow">
                         Explore Journal

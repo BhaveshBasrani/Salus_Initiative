@@ -43,9 +43,9 @@ export default function HomePage() {
   }, []);
 
   const stats = [
-    { label: 'Active Advocates', value: '1,200+', icon: Users },
+    { label: 'Community', value: '500+', icon: Users },
     { label: 'Psychological Safety', value: '100%', icon: ShieldCheck },
-    { label: 'Fellowship Tracks', value: '04', icon: Layers },
+    { label: 'Team Members', value: '30', icon: Layers },
     { label: 'Story Support', value: '24/7', icon: MessageCircle },
   ];
 

@@ -35,6 +35,7 @@ interface AuthStoreState {
   setUserApplication: (app: UserApplicationState | null) => void;
   withdrawUserApplication: () => void;
   recordTodayActivity: () => void;
+  clearBookmarks: () => void;
   logout: () => void;
 }
 
@@ -43,7 +44,7 @@ export const useAuthStore = create<AuthStoreState>()(
     (set, get) => ({
       user: null,
       isAuthModalOpen: false,
-      bookmarkedStoryIds: ['story-1', 'story-3'],
+      bookmarkedStoryIds: [],
       submittedStoryIds: [],
       userApplication: null,
       activityStreakCount: 1,
@@ -63,6 +64,8 @@ export const useAuthStore = create<AuthStoreState>()(
             ? state.bookmarkedStoryIds.filter((id) => id !== storyId)
             : [...state.bookmarkedStoryIds, storyId],
         })),
+
+      clearBookmarks: () => set({ bookmarkedStoryIds: [] }),
 
       addSubmittedStory: (storyId) =>
         set((state) => ({
@@ -99,7 +102,7 @@ export const useAuthStore = create<AuthStoreState>()(
         }
       },
 
-      logout: () => set({ user: null, userApplication: null }),
+      logout: () => set({ user: null, userApplication: null, bookmarkedStoryIds: [] }),
     }),
     {
       name: 'salus-auth-store',

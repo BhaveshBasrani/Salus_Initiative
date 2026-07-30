@@ -73,7 +73,8 @@ export default function TeamPage() {
                     <img
                       src={assetPath(member.imageUrl)}
                       alt={member.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                      style={{ objectPosition: member.imageUrl.includes('thanush') ? 'center 45%' : 'center top' }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-4 left-4">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--primary-accent)] bg-black/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
@@ -173,7 +174,8 @@ export default function TeamPage() {
                   <img
                     src={assetPath(selectedMember.imageUrl)}
                     alt={selectedMember.name}
-                    className="w-full h-full object-cover object-top"
+                    style={{ objectPosition: selectedMember.imageUrl.includes('thanush') ? 'center 45%' : 'center top' }}
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="space-y-1">
