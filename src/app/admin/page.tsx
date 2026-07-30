@@ -62,12 +62,6 @@ export default function AdminPage() {
   // Main Team State
   const [mainTeamInfo, setMainTeamInfo] = useState<MainTeamInfo>(DEFAULT_MAIN_TEAM_INFO);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(MOCK_TEAM_MEMBERS);
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState('');
-  const [newMemberCategory, setNewMemberCategory] = useState('Leadership');
-  const [newMemberBio, setNewMemberBio] = useState('');
-  const [newMemberImageUrl, setNewMemberImageUrl] = useState('');
-  const [newMemberQuote, setNewMemberQuote] = useState('');
 
   useEffect(() => {
     try {
@@ -250,38 +244,6 @@ export default function AdminPage() {
     } catch {}
   };
 
-  const handleAddTeamMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMemberName || !newMemberRole || !newMemberBio) {
-      toast.error('Please fill in member name, role, and biography.');
-      return;
-    }
-    const newMember: TeamMember = {
-      id: `team-${Date.now()}`,
-      name: newMemberName,
-      role: newMemberRole,
-      category: newMemberCategory,
-      bio: newMemberBio,
-      imageUrl: newMemberImageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
-      quote: newMemberQuote,
-    };
-    const updated = [newMember, ...teamMembers];
-    setTeamMembers(updated);
-    try {
-      localStorage.setItem('salus_team_members', JSON.stringify(updated));
-      localStorage.setItem('salus_team_initialized', 'true');
-    } catch {}
-    toast.success(`Added new team member: ${newMemberName}`);
-    setNewMemberName('');
-    setNewMemberRole('');
-    setNewMemberBio('');
-    setNewMemberImageUrl('');
-    setNewMemberQuote('');
-
-    try {
-      await AppsScriptClient.saveTeamMembers(updated, 'salus2026');
-    } catch {}
-  };
 
   const handleDeleteTeamMember = async (memberId: string) => {
     const updated = teamMembers.filter((m) => m.id !== memberId);
@@ -779,97 +741,6 @@ export default function AdminPage() {
                 </button>
               </form>
 
-              {/* ADD INDIVIDUAL TEAM MEMBER */}
-              <form onSubmit={handleAddTeamMember} className="p-6 md:p-8 rounded-3xl bg-[var(--card-inner-bg)] border border-white/10 space-y-6">
-                <div>
-                  <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-[var(--primary-accent)]" /> Add Individual Team Member
-                  </h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
-                    Add new leaders, peer counselors, editorial moderators, or advisors to the team roster.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Ananya Roy"
-                      value={newMemberName}
-                      onChange={(e) => setNewMemberName(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Role Title</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Lead Peer Counselor"
-                      value={newMemberRole}
-                      onChange={(e) => setNewMemberRole(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Category Track</label>
-                    <select
-                      value={newMemberCategory}
-                      onChange={(e) => setNewMemberCategory(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                    >
-                      <option value="Leadership">Leadership</option>
-                      <option value="Peer Leads">Peer Leads</option>
-                      <option value="Editorial & Design">Editorial & Design</option>
-                      <option value="Advisors & Mentors">Advisors & Mentors</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Photo Image URL</label>
-                    <input
-                      type="text"
-                      placeholder="https://images.unsplash.com/..."
-                      value={newMemberImageUrl}
-                      onChange={(e) => setNewMemberImageUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Quote / Statement (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Short reflection..."
-                      value={newMemberQuote}
-                      onChange={(e) => setNewMemberQuote(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-mono uppercase text-[var(--primary-accent)] block mb-1">Biography</label>
-                  <textarea
-                    required
-                    rows={2}
-                    placeholder="Brief bio about member's role and background..."
-                    value={newMemberBio}
-                    onChange={(e) => setNewMemberBio(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-[var(--card-bg)] text-xs text-[var(--text-main)] border border-white/10"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-full bg-[var(--primary-accent)] text-[var(--button-text)] text-xs font-semibold shadow-peach-glow hover:bg-[var(--accent-hover)] transition-all flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Add Team Member To Roster
-                </button>
-              </form>
 
               {/* ROSTER LIST */}
               <div className="space-y-4">
