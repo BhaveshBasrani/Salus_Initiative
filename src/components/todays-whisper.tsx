@@ -21,7 +21,11 @@ export function TodaysWhisper() {
   const handleShuffle = () => {
     setIsRotating(true);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % whispers.length);
+      let nextIndex = Math.floor(Math.random() * whispers.length);
+      if (nextIndex === currentIndex && whispers.length > 1) {
+        nextIndex = (currentIndex + 1) % whispers.length;
+      }
+      setCurrentIndex(nextIndex);
       setIsRotating(false);
     }, 200);
   };
