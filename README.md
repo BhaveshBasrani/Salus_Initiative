@@ -56,6 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 4. In your Apps Script editor, navigate to **Project Settings ⚙️** $\rightarrow$ **Script Properties** and add:
    - `SHEET_ID`: Your Google Sheet ID
    - `ADMIN_PASSKEY`: `salus2026`
+   - `ALERT_EMAIL`: (Optional) `example@gmail.com` or your admin notification email (defaults to `example@gmail.com`)
    - `RECAPTCHA_SECRET`: (Optional) Your Google reCAPTCHA v3 secret key
 5. Run the function `initSalusSheets()` once in the script editor to automatically generate all 8 database tab schemas.
 6. Click **Deploy** $\rightarrow$ **New deployment**:

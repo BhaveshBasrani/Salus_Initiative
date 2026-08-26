@@ -11,6 +11,7 @@ var CONFIG = {
   DRIVE_ROOT_FOLDER_NAME: 'Salus_Storage',
   RECAPTCHA_SECRET: PropertiesService.getScriptProperties().getProperty('RECAPTCHA_SECRET') || '6Lf9R2ktAAAAAIsoh_IB42tYRqf3WK7l-lVpUiJg',
   ADMIN_PASSKEY: PropertiesService.getScriptProperties().getProperty('ADMIN_PASSKEY') || 'salus2026',
+  ALERT_EMAIL: PropertiesService.getScriptProperties().getProperty('ALERT_EMAIL') || 'example@gmail.com',
 };
 
 // ==========================================
@@ -366,6 +367,10 @@ var ApplicationService = {
       EmailService.sendApplicationReceivedEmail(data.email, data.fullName || data.name, appId, roleTrack);
     }
 
+    if (CONFIG.ALERT_EMAIL) {
+      EmailService.sendNewApplicantAlertEmail(CONFIG.ALERT_EMAIL, data, appId, roleTrack, resumeUrl);
+    }
+
     return { success: true, message: 'Application submitted successfully!', applicationId: appId, id: appId, resumeUrl: resumeUrl, timestamp: timestamp };
   }
 };
@@ -585,6 +590,56 @@ var EmailService = {
 
     var html = getEmailTemplate(content);
     this.sendHtmlEmail(toEmail, "Fellowship Application Received [" + appId + "] — Salus Initiative", html);
+  },
+
+  sendNewApplicantAlertEmail: function(toEmail, data, appId, roleTrack, resumeUrl) {
+    var name = data.fullName || data.name || 'Anonymous Applicant';
+    var email = data.email || 'N/A';
+    var phone = data.phoneNumber || data.phone || 'N/A';
+    var school = data.schoolCollege || data.schoolOrOrg || 'N/A';
+    var grade = data.grade || data.gradeOrTitle || 'N/A';
+    var insta = data.instagramId || 'N/A';
+    var skills = data.primarySkill || data.relevantSkills || 'N/A';
+    var workStyle = data.preferredWorkStyle || 'N/A';
+    var pastExp = data.pastExperience || 'N/A';
+    var comfort = data.comfortSensitiveTopics || 'N/A';
+    var intent = data.whyThisTeam || data.statementOfIntent || data.motivationStatement || 'N/A';
+
+    var resumeHtml = resumeUrl 
+      ? "<a href='" + escapeHtml(resumeUrl) + "' target='_blank' style='display: inline-block; background: #FF7E67; color: #0C0D0E; padding: 10px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px;'>Open Uploaded Resume / CV ↗</a>" 
+      : "<span style='color: #96928C; font-size: 13px; font-style: italic;'>No resume document attached</span>";
+
+    var content =
+      "<div style='display: inline-block; background: rgba(255, 126, 103, 0.15); color: #FF7E67; font-size: 11px; font-family: monospace; font-weight: 700; padding: 4px 12px; border-radius: 9999px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px;'>⚡ New Applicant Notification</div>" +
+      "<h2 style='font-family: Georgia, serif; font-size: 24px; color: #F8F7F4; margin: 0 0 12px; font-weight: 700;'>New Candidate Applied</h2>" +
+      "<p style='font-size: 15px; line-height: 1.7; color: #E8E5DF; margin-bottom: 24px;'>" +
+        "A new applicant, <strong style='color: #FF7E67;'>" + escapeHtml(name) + "</strong>, has just applied for the <strong>" + escapeHtml(roleTrack) + " Track</strong> (Application ID: <span style='color: #FF7E67; font-family: monospace; font-weight: bold; background: rgba(255, 126, 103, 0.15); padding: 2px 6px; border-radius: 4px;'>" + appId + "</span>)." +
+      "</p>" +
+      "<div style='background: #1C1E22; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: left;'>" +
+        "<h4 style='margin: 0 0 14px; font-size: 12px; font-family: monospace; color: #FF7E67; text-transform: uppercase; letter-spacing: 1px;'>Applicant Overview</h4>" +
+        "<table width='100%' style='border-collapse: collapse; font-size: 14px; color: #E8E5DF;'>" +
+          "<tr><td style='padding: 6px 0; color: #96928C; width: 140px;'>Full Name:</td><td style='padding: 6px 0; font-weight: 600; color: #F8F7F4;'>" + escapeHtml(name) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Email:</td><td style='padding: 6px 0;'><a href='mailto:" + escapeHtml(email) + "' style='color: #FF7E67; text-decoration: none;'>" + escapeHtml(email) + "</a></td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Phone:</td><td style='padding: 6px 0;'>" + escapeHtml(phone) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>School / Org:</td><td style='padding: 6px 0;'>" + escapeHtml(school) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Grade / Year:</td><td style='padding: 6px 0;'>" + escapeHtml(grade) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Instagram:</td><td style='padding: 6px 0;'>" + escapeHtml(insta) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Applied Track:</td><td style='padding: 6px 0; font-weight: 600; color: #FF7E67;'>" + escapeHtml(roleTrack) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Primary Skills:</td><td style='padding: 6px 0;'>" + escapeHtml(skills) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Work Style:</td><td style='padding: 6px 0;'>" + escapeHtml(workStyle) + "</td></tr>" +
+          "<tr><td style='padding: 6px 0; color: #96928C;'>Sensitive Topics:</td><td style='padding: 6px 0;'>" + escapeHtml(comfort) + "</td></tr>" +
+        "</table>" +
+      "</div>" +
+      "<div style='background: #1C1E22; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: left;'>" +
+        "<h4 style='margin: 0 0 8px; font-size: 12px; font-family: monospace; color: #FF7E67; text-transform: uppercase; letter-spacing: 1px;'>Past Experience & Portfolio</h4>" +
+        "<p style='margin: 0 0 16px; font-size: 14px; color: #E8E5DF; line-height: 1.6; white-space: pre-wrap;'>" + escapeHtml(pastExp) + "</p>" +
+        "<h4 style='margin: 0 0 8px; font-size: 12px; font-family: monospace; color: #FF7E67; text-transform: uppercase; letter-spacing: 1px;'>Statement of Intent / Motivation</h4>" +
+        "<p style='margin: 0; font-size: 14px; color: #E8E5DF; line-height: 1.6; white-space: pre-wrap;'>" + escapeHtml(intent) + "</p>" +
+      "</div>" +
+      "<div style='margin-bottom: 12px; text-align: left;'>" + resumeHtml + "</div>";
+
+    var html = getEmailTemplate(content);
+    this.sendHtmlEmail(toEmail, "🚨 New Applicant: " + escapeHtml(name) + " applied for " + escapeHtml(roleTrack) + " [" + appId + "] — Salus Alert", html);
   },
 
   sendStoryReceivedEmail: function(toEmail, storyTitle) {
